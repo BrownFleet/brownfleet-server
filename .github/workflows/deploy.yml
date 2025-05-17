@@ -52,6 +52,9 @@ jobs:
           ssh ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} << 'EOF'
             set -e
 
+            mkdir -p ~/.ssh
+            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
             mkdir -p ~/brownfleet
 
             if [ ! -d ~/brownfleet/brownfleet-server/.git ]; then
