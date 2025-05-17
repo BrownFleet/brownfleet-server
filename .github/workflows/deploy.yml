@@ -49,9 +49,17 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} << 'EOF'
             set -e
-            cd ~/brownfleet
+
+            mkdir -p ~/brownfleet
+
+
+            if [ ! -d "~/brownfleet/brownfleet-server/.git" ]; then
+              git clone git@github.com:BrownFleet/brownfleet-server.git ~/brownfleet/brownfleet-server
+            fi
+
+            cd ~/brownfleet/brownfleet-server
             git pull origin main
             docker compose down
             docker compose up -d --build
