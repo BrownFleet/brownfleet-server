@@ -49,20 +49,20 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-         ssh -i ~/.ssh/id_ed25519 ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} << 'EOF'
-            set -e
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} << 'EOF'
+             set -e
 
-            mkdir -p ~/.ssh
-            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+             mkdir -p ~/.ssh
+             ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
-            mkdir -p ~/brownfleet
+             mkdir -p ~/brownfleet
 
-            if [ ! -d ~/brownfleet/brownfleet-server/.git ]; then
-              git clone git@github.com:BrownFleet/brownfleet-server.git ~/brownfleet/brownfleet-server
-            fi
+             if [ ! -d ~/brownfleet/brownfleet-server/.git ]; then
+               git clone git@github.com:BrownFleet/brownfleet-server.git ~/brownfleet/brownfleet-server
+             fi
 
-            cd ~/brownfleet/brownfleet-server
-            git pull origin main
-            docker compose down
-            docker compose up -d --build
-          EOF
+             cd ~/brownfleet/brownfleet-server
+             git pull origin main
+             docker compose down
+             docker compose up -d --build
+           EOF
