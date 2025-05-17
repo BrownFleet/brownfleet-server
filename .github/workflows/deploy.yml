@@ -49,13 +49,12 @@ jobs:
 
       - name: Deploy via SSH
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} << 'EOF'
+          ssh ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} << 'EOF'
             set -e
 
             mkdir -p ~/brownfleet
 
-
-            if [ ! -d "~/brownfleet/brownfleet-server/.git" ]; then
+            if [ ! -d ~/brownfleet/brownfleet-server/.git ]; then
               git clone git@github.com:BrownFleet/brownfleet-server.git ~/brownfleet/brownfleet-server
             fi
 
