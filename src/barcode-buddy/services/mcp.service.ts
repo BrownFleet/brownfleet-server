@@ -1,5 +1,6 @@
 import { getMCPClient } from "../../config/mcp.config";
 import logger from "../../shared/utils/logger";
+import { ToolResponse } from "../types/mcp.types";
 
 const SYSTEM_PROMPT = `You are Barcode Buddy, a restaurant service assistant for a specific venue and table. Your only tools are:
 - getMenu: Fetches the menu.
@@ -23,103 +24,103 @@ export class MCPService {
 
   async getMenu() {
     try {
-      const response = await this.client.callTool({
-        name: 'getMenu',
+      const response = (await this.client.callTool({
+        name: "getMenu",
         arguments: {
           venueId: this.venueId,
-          tableNumber: this.tableNumber
-        }
-      });
+          tableNumber: this.tableNumber,
+        },
+      })) as ToolResponse;
       return response.content[0].text;
     } catch (error) {
-      logger.error('Error fetching menu:', error);
-      throw new Error('Failed to fetch menu');
+      logger.error("Error fetching menu:", error);
+      throw new Error("Failed to fetch menu");
     }
   }
 
   async createOrder(items: Array<{ itemId: string; quantity: number }>) {
     try {
-      const response = await this.client.callTool({
-        name: 'createOrder',
+      const response = (await this.client.callTool({
+        name: "createOrder",
         arguments: {
           venueId: this.venueId,
           tableNumber: this.tableNumber,
-          items
-        }
-      });
+          items,
+        },
+      })) as ToolResponse;
       return response.content[0].text;
     } catch (error) {
-      logger.error('Error creating order:', error);
-      throw new Error('Failed to create order');
+      logger.error("Error creating order:", error);
+      throw new Error("Failed to create order");
     }
   }
 
   async removeOrder(orderId: string) {
     try {
-      const response = await this.client.callTool({
-        name: 'removeOrder',
+      const response = (await this.client.callTool({
+        name: "removeOrder",
         arguments: {
           venueId: this.venueId,
           tableNumber: this.tableNumber,
-          orderId
-        }
-      });
+          orderId,
+        },
+      })) as ToolResponse;
       return response.content[0].text;
     } catch (error) {
-      logger.error('Error removing order:', error);
-      throw new Error('Failed to remove order');
+      logger.error("Error removing order:", error);
+      throw new Error("Failed to remove order");
     }
   }
 
   async makePayment(amount: number, paymentMethod: string) {
     try {
-      const response = await this.client.callTool({
-        name: 'makePayment',
+      const response = (await this.client.callTool({
+        name: "makePayment",
         arguments: {
           venueId: this.venueId,
           tableNumber: this.tableNumber,
           amount,
-          paymentMethod
-        }
-      });
+          paymentMethod,
+        },
+      })) as ToolResponse;
       return response.content[0].text;
     } catch (error) {
-      logger.error('Error processing payment:', error);
-      throw new Error('Failed to process payment');
+      logger.error("Error processing payment:", error);
+      throw new Error("Failed to process payment");
     }
   }
 
   async getWashroomInfo() {
     try {
-      const response = await this.client.callTool({
-        name: 'getWashroomInfo',
+      const response = (await this.client.callTool({
+        name: "getWashroomInfo",
         arguments: {
           venueId: this.venueId,
-          tableNumber: this.tableNumber
-        }
-      });
-      return response.content[0].text;
+          tableNumber: this.tableNumber,
+        },
+      })) as ToolResponse;
+      response.content[0].text;
     } catch (error) {
-      logger.error('Error fetching washroom info:', error);
-      throw new Error('Failed to fetch washroom information');
+      logger.error("Error fetching washroom info:", error);
+      throw new Error("Failed to fetch washroom information");
     }
   }
 
   async handleUserQuery(query: string) {
     try {
-      const response = await this.client.callTool({
-        name: 'handleQuery',
+      const response = (await this.client.callTool({
+        name: "handleQuery",
         arguments: {
           venueId: this.venueId,
           tableNumber: this.tableNumber,
           query,
-          systemPrompt: SYSTEM_PROMPT
-        }
-      });
+          systemPrompt: SYSTEM_PROMPT,
+        },
+      })) as ToolResponse;
       return response.content[0].text;
     } catch (error) {
-      logger.error('Error handling user query:', error);
-      throw new Error('Failed to process user query');
+      logger.error("Error handling user query:", error);
+      throw new Error("Failed to process user query");
     }
   }
 }
