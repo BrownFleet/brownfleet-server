@@ -1,6 +1,8 @@
 # Node modules
 node_modules/
 
+barcode-buddy-1.sql
+
 # TypeScript build output
 dist/
 build/
