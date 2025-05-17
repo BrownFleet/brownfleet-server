@@ -23,7 +23,7 @@ export const createMCPClient = async () => {
     });
 
     const transport = new StreamableHTTPClientTransport(
-      new URL("https://api.mistral.ai/v1")
+      new URL("https://api.mistral.ai/v1"),
     );
 
     await client.connect(transport);
@@ -45,7 +45,7 @@ export const initializeMCPClient = async () => {
 export const getMCPClient = () => {
   if (!mcpClient) {
     throw new Error(
-      "MCP client not initialized. Call initializeMCPClient first."
+      "MCP client not initialized. Call initializeMCPClient first.",
     );
   }
   return mcpClient;

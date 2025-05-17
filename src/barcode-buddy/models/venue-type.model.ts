@@ -1,10 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn } from "typeorm";
 
-@Entity('venue_types')
+@Entity("venue_types")
 export class VenueType {
-  @PrimaryGeneratedColumn('increment')
+  @PrimaryGeneratedColumn("increment")
   id!: number;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   name!: string;
 }

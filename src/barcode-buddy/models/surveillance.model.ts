@@ -1,28 +1,34 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from "typeorm";
 
-@Entity('surveillance')
+@Entity("surveillance")
 export class Surveillance {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'text', name: 'camera_name' })
+  @Column({ type: "text", name: "camera_name" })
   cameraName!: string;
 
-  @Column({ type: 'text', name: 'camera_type' })
+  @Column({ type: "text", name: "camera_type" })
   cameraType!: string;
 
-  @Column({ type: 'text', name: 'camera_location' })
+  @Column({ type: "text", name: "camera_location" })
   cameraLocation!: string;
 
-  @Column({ type: 'boolean', name: 'camera_status' })
+  @Column({ type: "boolean", name: "camera_status" })
   cameraStatus!: boolean;
 
-  @Column({ type: 'text', nullable: true, name: 'camera_url' })
+  @Column({ type: "text", nullable: true, name: "camera_url" })
   cameraUrl?: string;
 
-  @CreateDateColumn({ type: 'timestamp with time zone', name: 'created_at' })
+  @CreateDateColumn({ type: "timestamp with time zone", name: "created_at" })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp with time zone', name: 'updated_at' })
+  @UpdateDateColumn({ type: "timestamp with time zone", name: "updated_at" })
   updatedAt!: Date;
 }

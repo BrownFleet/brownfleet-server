@@ -1,5 +1,5 @@
-import { Router } from 'express';
-import { mcpController } from '../controllers/mcp.controller';
+import { Router } from "express";
+import { mcpController } from "../controllers/mcp.controller";
 
 const router = Router();
 

@@ -1,28 +1,34 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from "typeorm";
 
-@Entity('menus')
+@Entity("menus")
 export class Menu {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: 'uuid', name: 'venue_id' })
+  @Column({ type: "uuid", name: "venue_id" })
   venueId!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   name!: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: "text", nullable: true })
   description!: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: "text" })
   currency!: string;
 
-  @Column({ type: 'boolean', default: true })
+  @Column({ type: "boolean", default: true })
   isActive!: boolean;
 
-  @CreateDateColumn({ type: 'timestamp with time zone', name: 'created_at' })
+  @CreateDateColumn({ type: "timestamp with time zone", name: "created_at" })
   createdAt!: Date;
 
-  @UpdateDateColumn({ type: 'timestamp with time zone', name: 'updated_at' })
+  @UpdateDateColumn({ type: "timestamp with time zone", name: "updated_at" })
   updatedAt!: Date;
 }
