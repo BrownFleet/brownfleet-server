@@ -14,8 +14,8 @@ app.use(cors());
 app.use(express.json());
 
 // MCP Routes
-app.use("/api", mcpRoutes);
-app.use("/api", menuRoutes);
+app.use("/", mcpRoutes);
+app.use("/", menuRoutes);
 // Routes will be added here
 
 app.use(errorHandler);
