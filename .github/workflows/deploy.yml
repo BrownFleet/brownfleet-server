@@ -7,46 +7,49 @@ on:
 jobs:
   ci-checks:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
-
       - name: Install dependencies
         run: npm ci
-
       - name: Type check
         run: npm run type-check
-
       - name: Check formatting
         run: npm run format:check
-
       - name: Check circular dependencies
         run: npm run find-circulars
-
       - name: Run tests
         run: npm run test
 
   deploy:
     needs: ci-checks
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
       - name: Setup SSH for GitHub Actions → GCP VM
         run: |
           mkdir -p ~/.ssh/github-client-to-vm
           echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/github-client-to-vm/id_ed25519
           chmod 600 ~/.ssh/github-client-to-vm/id_ed25519
           ssh-keyscan -H ${{ secrets.GCP_HOST }} >> ~/.ssh/github-client-to-vm/known_hosts
-
+      - name: Create .env file for deploy
+        run: |
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
+          echo "MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}" >> .env
+          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+          echo "PORT=${{ secrets.PORT }}" >> .env
+      - name: Copy .env to VM
+        run: |
+          scp -i ~/.ssh/github-client-to-vm/id_ed25519 -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:~/brownfleet/.env
       - name: Deploy via SSH
         run: |
           ssh -i ~/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=~/.ssh/github-client-to-vm/known_hosts ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} <<-'EOF'
@@ -63,6 +66,7 @@ jobs:
 
             cd ~/brownfleet/brownfleet-server
             git pull origin main
-            docker-compose down
-            docker-compose up -d --build
+
+            docker-compose --env-file ../.env down
+            docker-compose --env-file ../.env up -d --build
           EOF
