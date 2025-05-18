@@ -47,9 +47,9 @@ jobs:
           echo "MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}" >> .env
           echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
           echo "PORT=${{ secrets.PORT }}" >> .env
-          echo "PORT=${{ secrets.PGADMIN_DEFAULT_EMAIL }}" >> .env
-          echo "PORT=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" >> .env
-          echo "PORT=${{ secrets.PGADMIN_PORT }}" >> .env
+          echo "PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}" >> .env
+          echo "PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" >> .env
+          echo "PGADMIN_PORT=${{ secrets.PGADMIN_PORT }}" >> .env
       - name: Copy .env to VM
         run: |
           scp -i ~/.ssh/github-client-to-vm/id_ed25519 -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:~/brownfleet/.env
