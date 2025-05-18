@@ -40,29 +40,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup SSH
+      - name: Setup SSH for GitHub Actions → GCP VM
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.GCP_HOST }} >> ~/.ssh/known_hosts
+          mkdir -p ~/.ssh/github-client-to-vm
+          echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/github-client-to-vm/id_ed25519
+          chmod 600 ~/.ssh/github-client-to-vm/id_ed25519
+          ssh-keyscan -H ${{ secrets.GCP_HOST }} >> ~/.ssh/github-client-to-vm/known_hosts
 
       - name: Deploy via SSH
         run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} << 'EOF'
-             set -e
+          ssh -i ~/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=~/.ssh/github-client-to-vm/known_hosts ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} <<-'EOF'
+            set -e
 
-             mkdir -p ~/.ssh
-             ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+            mkdir -p ~/.ssh/vm-client-to-github
+            ssh-keyscan -H github.com >> ~/.ssh/vm-client-to-github/known_hosts
 
-             mkdir -p ~/brownfleet
+            mkdir -p ~/brownfleet
 
-             if [ ! -d ~/brownfleet/brownfleet-server/.git ]; then
-               git clone git@github.com:BrownFleet/brownfleet-server.git ~/brownfleet/brownfleet-server
-             fi
+            if [ ! -d ~/brownfleet/brownfleet-server/.git ]; then
+              git clone git@github.com:BrownFleet/brownfleet-server.git ~/brownfleet/brownfleet-server
+            fi
 
-             cd ~/brownfleet/brownfleet-server
-             git pull origin main
-             docker compose down
-             docker compose up -d --build
-           EOF
+            cd ~/brownfleet/brownfleet-server
+            git pull origin main
+            docker compose down
+            docker compose up -d --build
+          EOF
