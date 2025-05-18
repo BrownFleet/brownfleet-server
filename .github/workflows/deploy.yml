@@ -70,6 +70,6 @@ jobs:
             cd ~/brownfleet/brownfleet-server
             git pull origin main
 
-            docker-compose --env-file ../.env down
-            docker-compose --env-file ../.env up -d --build
+            sudo docker-compose --env-file ../.env down
+            sudo docker-compose --env-file ../.env up -d --build
           EOF
