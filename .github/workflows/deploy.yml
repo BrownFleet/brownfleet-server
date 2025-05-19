@@ -72,6 +72,16 @@ jobs:
           chmod 600 /home/runner/.ssh/github-client-to-vm/id_ed25519
           ssh-keyscan -H ${{ secrets.GCP_HOST }} >> /home/runner/.ssh/github-client-to-vm/known_hosts
           chmod 644 /home/runner/.ssh/github-client-to-vm/known_hosts
+          # Verify key file and fingerprint
+          if [ -s /home/runner/.ssh/github-client-to-vm/id_ed25519 ]; then
+            echo "SSH key file exists and is non-empty"
+            ls -l /home/runner/.ssh/github-client-to-vm/id_ed25519
+            head -n 1 /home/runner/.ssh/github-client-to-vm/id_ed25519
+            ssh-keygen -l -f /home/runner/.ssh/github-client-to-vm/id_ed25519
+          else
+            echo "SSH key file is missing or empty"
+            exit 1
+          fi
       - name: Create .env file for deploy
         run: |
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
@@ -87,7 +97,18 @@ jobs:
           echo "PGADMIN_PORT=${{ secrets.PGADMIN_PORT }}" >> .env
       - name: Copy .env to VM
         run: |
-          scp -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:~/brownfleet/.env
+          set -x
+          # Verify .env file exists
+          if [ -f .env ]; then
+            echo ".env file exists"
+            ls -l .env
+          else
+            echo ".env file is missing"
+            exit 1
+          fi
+          # Test SSH connection and copy .env
+          ssh -v -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o StrictHostKeyChecking=no -T ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} || echo "SSH test failed, proceeding to scp"
+          scp -v -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:~/brownfleet/.env
       - name: Deploy via SSH
         run: |
           ssh -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o ConnectTimeout=10 ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} <<-'EOF'
