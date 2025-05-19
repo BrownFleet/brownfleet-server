@@ -25,9 +25,23 @@ jobs:
       - name: Run tests
         run: npm run test
 
-  deploy:
+  build-and-push:
     needs: ci-checks
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ghcr.io/BrownFleet/brownfleet-server:latest .
+          docker push ghcr.io/BrownFleet/brownfleet-server:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -45,7 +59,7 @@ jobs:
           echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
           echo "MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}" >> .env
-          echo "NODE_ENV=${{ secrets.NODE_ENV }}" >> .env
+          echo "NODE_ENV=production" >> .env
           echo "PORT=${{ secrets.PORT }}" >> .env
           echo "PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}" >> .env
           echo "PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" >> .env
@@ -55,21 +69,25 @@ jobs:
           scp -i ~/.ssh/github-client-to-vm/id_ed25519 -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:~/brownfleet/.env
       - name: Deploy via SSH
         run: |
-          ssh -i ~/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=~/.ssh/github-client-to-vm/known_hosts ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} <<-'EOF'
+          ssh -i ~/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=~/.ssh/github-client-to-vm/known_hosts -o ConnectTimeout=10 ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} <<-'EOF'
             set -e
-
+            echo "Starting deployment..."
             mkdir -p ~/.ssh/vm-client-to-github
             ssh-keyscan -H github.com >> ~/.ssh/vm-client-to-github/known_hosts
-
+            echo "Cloning or updating repository..."
             mkdir -p ~/brownfleet
-
             if [ ! -d ~/brownfleet/brownfleet-server/.git ]; then
               git clone git@github.com:BrownFleet/brownfleet-server.git ~/brownfleet/brownfleet-server
             fi
-
             cd ~/brownfleet/brownfleet-server
             git pull origin main
-
-            sudo docker-compose --env-file ../.env down
-            sudo docker-compose --env-file ../.env up -d --build
+            echo "Cleaning up unused Docker resources..."
+            sudo docker system prune -a -f --volumes
+            echo "Logging in to GitHub Container Registry..."
+            echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ secrets.GH_USERNAME }} --password-stdin
+            echo "Running docker-compose..."
+            sudo docker-compose -f docker-compose.prod.yml --env-file ../.env down
+            sudo docker-compose -f docker-compose.prod.yml --env-file ../.env pull
+            sudo docker-compose -f docker-compose.prod.yml --env-file ../.env up -d
+            echo "Deployment completed."
           EOF
