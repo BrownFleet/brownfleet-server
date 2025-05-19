@@ -45,12 +45,33 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Debug environment
+        run: |
+          echo "Current user:"
+          whoami
+          echo "Home directory:"
+          echo $HOME
+          echo "Listing home directory contents:"
+          ls -la /home/runner
+          echo "Disk usage:"
+          df -h /home/runner
+          echo "Permissions of /home/runner:"
+          ls -ld /home/runner
       - name: Setup SSH for GitHub Actions → GCP VM
         run: |
-          mkdir -p ~/.ssh/github-client-to-vm
-          echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/github-client-to-vm/id_ed25519
-          chmod 600 ~/.ssh/github-client-to-vm/id_ed25519
-          ssh-keyscan -H ${{ secrets.GCP_HOST }} >> ~/.ssh/github-client-to-vm/known_hosts
+          set -x
+          mkdir -p /home/runner/.ssh/github-client-to-vm
+          if [ -d /home/runner/.ssh/github-client-to-vm ]; then
+            echo "Directory created successfully"
+            ls -ld /home/runner/.ssh/github-client-to-vm
+          else
+            echo "Failed to create directory"
+            exit 1
+          fi
+          echo "${{ secrets.GCP_SSH_KEY }}" > /home/runner/.ssh/github-client-to-vm/id_ed25519
+          chmod 600 /home/runner/.ssh/github-client-to-vm/id_ed25519
+          ssh-keyscan -H ${{ secrets.GCP_HOST }} >> /home/runner/.ssh/github-client-to-vm/known_hosts
+          chmod 644 /home/runner/.ssh/github-client-to-vm/known_hosts
       - name: Create .env file for deploy
         run: |
           echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
@@ -66,10 +87,10 @@ jobs:
           echo "PGADMIN_PORT=${{ secrets.PGADMIN_PORT }}" >> .env
       - name: Copy .env to VM
         run: |
-          scp -i ~/.ssh/github-client-to-vm/id_ed25519 -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:~/brownfleet/.env
+          scp -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:~/brownfleet/.env
       - name: Deploy via SSH
         run: |
-          ssh -i ~/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=~/.ssh/github-client-to-vm/known_hosts -o ConnectTimeout=10 ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} <<-'EOF'
+          ssh -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o ConnectTimeout=10 ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} <<-'EOF'
             set -e
             echo "Starting deployment..."
             mkdir -p ~/.ssh/vm-client-to-github
