@@ -6,9 +6,12 @@
     "strict": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "outDir": "dist",
+    "rootDir": "src",
     "paths": {
       "@shared/*": ["src/shared/*"],
       "@config/*": ["src/config/*"]
     }
-  }
+  },
+  "include": ["src/**/*"]
 }
