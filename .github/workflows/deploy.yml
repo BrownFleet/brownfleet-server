@@ -8,33 +8,23 @@ jobs:
   ci-checks:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 18
-      - name: Install dependencies
-        run: npm ci
-      - name: Type check
-        run: npm run type-check
-      - name: Check formatting
-        run: npm run format:check
-      - name: Check circular dependencies
-        run: npm run find-circulars
-      - name: Run tests
-        run: npm run test
+      - run: npm ci
+      - run: npm run type-check
+      - run: npm run format:check
+      - run: npm run find-circulars
+      - run: npm run test
 
   build-and-push:
     needs: ci-checks
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Build and Push Docker Image
-        run: |
+      - uses: actions/checkout@v3
+      - run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - run: |
           docker build -t ghcr.io/brownfleet/brownfleet-server:latest .
           docker push ghcr.io/brownfleet/brownfleet-server:latest
 
@@ -43,116 +33,62 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Debug environment
+      - uses: actions/checkout@v3
+
+      - name: Setup SSH
         run: |
-          echo "Current user:"
-          whoami
-          echo "Home directory:"
-          echo $HOME
-          echo "Listing home directory contents:"
-          ls -la /home/runner
-          echo "Disk usage:"
-          df -h /home/runner
-          echo "Permissions of /home/runner:"
-          ls -ld /home/runner
-      - name: Debug GCP_HOST
+          mkdir -p ~/.ssh/github-client-to-vm
+          echo "${{ secrets.GCP_SSH_KEY }}" > ~/.ssh/github-client-to-vm/id_ed25519
+          chmod 600 ~/.ssh/github-client-to-vm/id_ed25519
+          ssh-keyscan -H ${{ secrets.GCP_HOST }} >> ~/.ssh/github-client-to-vm/known_hosts
+          chmod 644 ~/.ssh/github-client-to-vm/known_hosts
+
+      - name: Create and copy .env to VM
         run: |
-          set -x
-          if [ -z "${{ secrets.GCP_HOST }}" ]; then
-            echo "Error: GCP_HOST is empty or unset"
-            exit 1
-          fi
-          echo "GCP_HOST length: $(echo -n ${{ secrets.GCP_HOST }} | wc -c)"
-          echo "GCP_HOST sanitized: $(echo ${{ secrets.GCP_HOST }} | sed 's/./*/g')"
-          echo "Testing connectivity to GCP_HOST..."
-          ping -c 3 ${{ secrets.GCP_HOST }} || echo "Ping failed (ICMP may be blocked by firewall)"
-          nc -zv ${{ secrets.GCP_HOST }} 22 || echo "Port 22 unreachable"
-      - name: Setup SSH for GitHub Actions → GCP VM
+          cat <<EOF > .env
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}
+          NODE_ENV=production
+          PORT=${{ secrets.PORT }}
+          PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}
+          PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}
+          PGADMIN_PORT=${{ secrets.PGADMIN_PORT }}
+          EOF
+
+          scp -i ~/.ssh/github-client-to-vm/id_ed25519 \
+              -o UserKnownHostsFile=~/.ssh/github-client-to-vm/known_hosts \
+              -o StrictHostKeyChecking=no \
+              .env ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:~/brownfleet/.env
+
+      - name: SSH Deploy to VM
         run: |
-          set -x
-          mkdir -p /home/runner/.ssh/github-client-to-vm
-          if [ -d /home/runner/.ssh/github-client-to-vm ]; then
-            echo "Directory created successfully"
-            ls -ld /home/runner/.ssh/github-client-to-vm
-          else
-            echo "Failed to create directory"
-            exit 1
-          fi
-          echo "${{ secrets.GCP_SSH_KEY }}" > /home/runner/.ssh/github-client-to-vm/id_ed25519
-          chmod 600 /home/runner/.ssh/github-client-to-vm/id_ed25519
-          for attempt in {1..3}; do
-            echo "Attempting ssh-keyscan (attempt $attempt)..."
-            if ssh-keyscan -H -p 22 ${{ secrets.GCP_HOST }} >> /home/runner/.ssh/github-client-to-vm/known_hosts 2>/dev/null; then
-              echo "ssh-keyscan succeeded"
-              break
-            else
-              echo "ssh-keyscan failed, retrying..."
-              sleep 2
-            fi
-            if [ $attempt -eq 3 ]; then
-              echo "Warning: ssh-keyscan failed after 3 attempts, proceeding with StrictHostKeyChecking=no"
-            fi
-          done
-          chmod 644 /home/runner/.ssh/github-client-to-vm/known_hosts || true
-          if [ -s /home/runner/.ssh/github-client-to-vm/id_ed25519 ]; then
-            echo "SSH key file exists and is non-empty"
-            ls -l /home/runner/.ssh/github-client-to-vm/id_ed25519
-            head -n 1 /home/runner/.ssh/github-client-to-vm/id_ed25519
-            ssh-keygen -l -f /home/runner/.ssh/github-client-to-vm/id_ed25519
-          else
-            echo "Error: SSH key file is missing or empty"
-            exit 1
-          fi
-      - name: Create .env file for deploy
-        run: |
-          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
-          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
-          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
-          echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> .env
-          echo "MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}" >> .env
-          echo "NODE_ENV=production" >> .env
-          echo "PORT=${{ secrets.PORT }}" >> .env
-          echo "PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}" >> .env
-          echo "PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}" >> .env
-          echo "PGADMIN_PORT=${{ secrets.PGADMIN_PORT }}" >> .env
-      - name: Copy .env to VM
-        run: |
-          set -x
-          if [ -f .env ]; then
-            echo ".env file exists"
-            ls -l .env
-          else
-            echo "Error: .env file is missing"
-            exit 1
-          fi
-          ssh -v -p 22 -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o StrictHostKeyChecking=no -T ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} || echo "SSH test failed, proceeding to scp"
-          scp -v -P 22 -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:~/brownfleet/.env
-      - name: Deploy via SSH
-        run: |
-          ssh -p 22 -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} <<-'EOF'
+          ssh -i ~/.ssh/github-client-to-vm/id_ed25519 \
+              -o UserKnownHostsFile=~/.ssh/github-client-to-vm/known_hosts \
+              -o StrictHostKeyChecking=no \
+              ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} <<'EOF'
             set -e
-            echo "Starting deployment..."
             mkdir -p ~/.ssh/vm-client-to-github
             ssh-keyscan -H github.com >> ~/.ssh/vm-client-to-github/known_hosts
-            echo "Cloning or updating repository..."
+
             mkdir -p ~/brownfleet
-            if [ ! -d ~/brownfleet/brownfleet-server/.git ]; then
-              git clone git@github.com:BrownFleet/brownfleet-server.git ~/brownfleet/brownfleet-server
+            cd ~/brownfleet
+
+            if [ ! -d brownfleet-server/.git ]; then
+              git clone git@github.com:BrownFleet/brownfleet-server.git
             fi
-            cd ~/brownfleet/brownfleet-server
+
+            cd brownfleet-server
             git pull origin main
-            echo "Cleaning up unused Docker resources..."
-            sudo -n docker system prune -a -f --volumes || echo "Docker prune failed, continuing..."
-            echo "Logging in to GitHub Container Registry..."
-            echo "${{ secrets.GH_PAT }}" | sudo -n docker login ghcr.io -u ${{ secrets.GH_USERNAME }} --password-stdin
-            echo "Running docker-compose..."
-            sudo -n docker-compose -f docker-compose.prod.yml --env-file ../.env down
-            sudo -n docker-compose -f docker-compose.prod.yml --env-file ../.env pull
-            sudo -n docker-compose -f docker-compose.prod.yml --env-file ../.env up -d
-            echo "Deployment completed."
-            echo "Verifying running containers..."
-            sudo -n docker ps
+
+            echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ secrets.GH_USERNAME }} --password-stdin
+
+            sudo docker-compose -f docker-compose.prod.yml --env-file ../.env down
+            sudo docker-compose -f docker-compose.prod.yml --env-file ../.env pull
+            sudo docker-compose -f docker-compose.prod.yml --env-file ../.env up -d
+
+            sudo docker ps
           EOF
