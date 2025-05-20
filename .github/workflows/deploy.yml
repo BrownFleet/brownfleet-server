@@ -145,12 +145,14 @@ jobs:
             cd ~/brownfleet/brownfleet-server
             git pull origin main
             echo "Cleaning up unused Docker resources..."
-            sudo docker system prune -a -f --volumes
+            sudo -n docker system prune -a -f --volumes || echo "Docker prune failed, continuing..."
             echo "Logging in to GitHub Container Registry..."
-            echo "${{ secrets.GH_PAT }}" | sudo docker login ghcr.io -u ${{ secrets.GH_USERNAME }} --password-stdin
+            echo "${{ secrets.GH_PAT }}" | sudo -n docker login ghcr.io -u ${{ secrets.GH_USERNAME }} --password-stdin
             echo "Running docker-compose..."
-            sudo docker-compose -f docker-compose.prod.yml --env-file ../.env down
-            sudo docker-compose -f docker-compose.prod.yml --env-file ../.env pull
-            sudo docker-compose -f docker-compose.prod.yml --env-file ../.env up -d
+            sudo -n docker-compose -f docker-compose.prod.yml --env-file ../.env down
+            sudo -n docker-compose -f docker-compose.prod.yml --env-file ../.env pull
+            sudo -n docker-compose -f docker-compose.prod.yml --env-file ../.env up -d
             echo "Deployment completed."
+            echo "Verifying running containers..."
+            sudo -n docker ps
           EOF
