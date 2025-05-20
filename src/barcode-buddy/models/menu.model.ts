@@ -23,7 +23,7 @@ export class Menu {
   @Column({ type: "text" })
   currency!: string;
 
-  @Column({ type: "boolean", default: true })
+  @Column({ type: "boolean", default: true,  name: "is_active" })
   isActive!: boolean;
 
   @CreateDateColumn({ type: "timestamp with time zone", name: "created_at" })
