@@ -67,7 +67,7 @@ jobs:
           echo "GCP_HOST length: $(echo -n ${{ secrets.GCP_HOST }} | wc -c)"
           echo "GCP_HOST sanitized: $(echo ${{ secrets.GCP_HOST }} | sed 's/./*/g')"
           echo "Testing connectivity to GCP_HOST..."
-          ping -c 3 ${{ secrets.GCP_HOST }} || echo "Ping failed"
+          ping -c 3 ${{ secrets.GCP_HOST }} || echo "Ping failed (ICMP may be blocked by firewall)"
           nc -zv ${{ secrets.GCP_HOST }} 22 || echo "Port 22 unreachable"
       - name: Setup SSH for GitHub Actions → GCP VM
         run: |
@@ -84,7 +84,7 @@ jobs:
           chmod 600 /home/runner/.ssh/github-client-to-vm/id_ed25519
           for attempt in {1..3}; do
             echo "Attempting ssh-keyscan (attempt $attempt)..."
-            if ssh-keyscan -H ${{ secrets.GCP_HOST }} >> /home/runner/.ssh/github-client-to-vm/known_hosts 2>/dev/null; then
+            if ssh-keyscan -H -p 22 ${{ secrets.GCP_HOST }} >> /home/runner/.ssh/github-client-to-vm/known_hosts 2>/dev/null; then
               echo "ssh-keyscan succeeded"
               break
             else
@@ -128,11 +128,11 @@ jobs:
             echo "Error: .env file is missing"
             exit 1
           fi
-          ssh -v -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o StrictHostKeyChecking=no -T ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} || echo "SSH test failed, proceeding to scp"
-          scp -v -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:~/brownfleet/.env
+          ssh -v -p 22 -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o StrictHostKeyChecking=no -T ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} || echo "SSH test failed, proceeding to scp"
+          scp -v -P 22 -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o StrictHostKeyChecking=no .env ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }}:~/brownfleet/.env
       - name: Deploy via SSH
         run: |
-          ssh -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} <<-'EOF'
+          ssh -p 22 -i /home/runner/.ssh/github-client-to-vm/id_ed25519 -o UserKnownHostsFile=/home/runner/.ssh/github-client-to-vm/known_hosts -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${{ secrets.GCP_USER }}@${{ secrets.GCP_HOST }} <<-'EOF'
             set -e
             echo "Starting deployment..."
             mkdir -p ~/.ssh/vm-client-to-github
