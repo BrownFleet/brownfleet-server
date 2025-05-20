@@ -1,6 +1,8 @@
 import { DataSource } from "typeorm";
 import { DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_NAME } from "./env";
 
+const isProd = process.env.NODE_ENV === "production";
+
 export const AppDataSource = new DataSource({
   type: "postgres",
   host: DB_HOST,
@@ -8,17 +10,15 @@ export const AppDataSource = new DataSource({
   username: DB_USERNAME,
   password: DB_PASSWORD,
   database: DB_NAME,
-  synchronize: true, // Set to false in production
+  synchronize: isProd ? false : true, // Set to false in production
   logging: true,
-  // entities: ["src/**/*.entity.ts"],
-  entities: [
-    "src/barcode-buddy/models/*.ts",
-    "src/barcode-buddy/models/**/*.ts",
-    "src/barcode-buddy/models/*.js",
-    "src/barcode-buddy/models/**/*.js",
-  ],
-  migrations: ["src/migrations/*.ts"],
-  subscribers: ["src/subscribers/*.ts"],
+  entities: isProd
+    ? ["dist/barcode-buddy/models/**/*.js"]
+    : ["src/barcode-buddy/models/**/*.ts"],
+  migrations: isProd ? ["dist/migrations/**/*.js"] : ["src/migrations/**/*.ts"],
+  subscribers: isProd
+    ? ["dist/subscribers/**/*.js"]
+    : ["src/subscribers/**/*.ts"],
 });
 
 export const connectDB = async () => {
