@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+set -euo pipefail
+LC_ALL=C
+
+if [ "$current_branch" = "main" ]; then
+  echo "❌ Direct commits to 'main' branch are not allowed."
+  echo "👉 Please create a feature branch and commit there."
+  exit 1
+fi
+
+# Validate branch name
+local_branch="$(git rev-parse --abbrev-ref HEAD)"
+valid_branch_regex="^(feature|bugfix|improvement|library|prerelease|release|hotfix)\/([0-9._-]+|(NO_TASK-.+))$"
+
+if ! echo "$local_branch" | grep -qE "$valid_branch_regex"; then
+  echo "❌ Invalid branch name: \"$local_branch\""
+  echo "✅ Expected format: $valid_branch_regex"
+  echo "👉 Rename your branch to follow naming conventions and try again."
+  exit 1
+fi
+
+
+echo "🔍 Running TypeScript type check..."
+npm run type-check
+
+echo "🔍 Running ESLint..."
+npm run lint
+
+echo "🔍 Running Prettier format check..."
+npm run format:check
