@@ -1,5 +1,5 @@
 import { getMCPClient } from "../../config/mcp.config";
-import logger from "../../shared/utils/logger";
+import logger from "../common/utils/logger";
 import { ToolResponse } from "../types/mcp.types";
 
 const SYSTEM_PROMPT = `You are Barcode Buddy, a restaurant service assistant for a specific venue and table. Your only tools are:

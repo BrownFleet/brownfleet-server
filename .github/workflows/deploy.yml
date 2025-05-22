@@ -53,6 +53,7 @@ jobs:
           DB_USERNAME=${{ secrets.DB_USERNAME }}
           MISTRAL_API_KEY=${{ secrets.MISTRAL_API_KEY }}
           NODE_ENV=production
+          BASE_URL=${{ secrets.BASE_URL }}
           PORT=${{ secrets.PORT }}
           PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}
           PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}

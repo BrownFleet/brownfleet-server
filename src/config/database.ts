@@ -19,6 +19,11 @@ export const AppDataSource = new DataSource({
   subscribers: isProd
     ? ["dist/subscribers/**/*.js"]
     : ["src/subscribers/**/*.ts"],
+  extra: {
+    connectionTimeoutMillis: 5000, // Wait 5 seconds for connection
+    maxRetries: 10, // Retry up to 10 times
+    retryDelay: 3000, // Wait 3 seconds between retries
+  },
 });
 
 export const connectDB = async () => {

@@ -1,5 +1,5 @@
-import * as swaggerJsdoc from "swagger-jsdoc";
-import * as swaggerUi from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 import { Express } from "express";
 
@@ -13,8 +13,17 @@ export function setupSwagger(app: Express) {
         description: "API documentation BarcodeBuddy app",
       },
       servers: [{ url: process.env.BASE_URL || "http://localhost:3000" }],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+          },
+        },
+      },
     },
-    apis: ["./src/barcode-buddy/routes/*.ts"], // adjust as needed
+    apis: ["./src/barcode-buddy/routes/*.ts"],
   };
 
   const swaggerSpec = swaggerJsdoc(swaggerOptions);

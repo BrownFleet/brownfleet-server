@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { MenuController } from "../controllers/menu.controller";
+import { authenticateToken } from "../common/middleware/auth.middleware";
 
 const router = Router();
 const menuController = new MenuController();
@@ -9,6 +10,8 @@ const menuController = new MenuController();
  * /menus:
  *   get:
  *     summary: Get menus by venueId
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: venueId
@@ -20,6 +23,10 @@ const menuController = new MenuController();
  *       200:
  *         description: List of menus
  */
-router.get("/menus", menuController.getMenus.bind(menuController));
+router.get(
+  "/menus",
+  authenticateToken,
+  menuController.getMenus.bind(menuController),
+);
 
 export default router;
