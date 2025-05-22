@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+current_branch="$(git rev-parse --abbrev-ref HEAD)"
+if [ "$current_branch" = "main" ]; then
+  echo "❌ Direct pushes to 'main' branch are not allowed."
+  echo "👉 Please push to a feature branch or create a pull request."
+  exit 1
+fi
+
+echo "🔍 Running circular dependency check..."
+npm run find-circulars
+
+echo "🔍 Running tests before push..."
+npm run test:pre-push
