@@ -1,4 +1,4 @@
-import * as swaggerJsdoc from 'swagger-jsdoc'
+import * as swaggerJsdoc from "swagger-jsdoc";
 import * as swaggerUi from "swagger-ui-express";
 
 import { Express } from "express";
