@@ -2,15 +2,9 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 15.8
+-- Dumped from database version 15.13
 -- Dumped by pg_dump version 15.12 (Homebrew)
 
--- Started on 2025-05-06 20:11:07 EEST
-
--- Enable UUID extension in public schema first
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
-
--- Setting up environment and schema
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
@@ -22,282 +16,362 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
--- Drop and recreate public schema to ensure clean state
-DROP SCHEMA IF EXISTS public CASCADE;
+DROP DATABASE IF EXISTS "barcode-buddy";
+--
+-- Name: barcode-buddy; Type: DATABASE; Schema: -; Owner: -
+--
+
+CREATE DATABASE "barcode-buddy" WITH TEMPLATE = template0 ENCODING = 'UTF8' LOCALE_PROVIDER = libc LOCALE = 'en_US.utf8';
+
+
+\encoding SQL_ASCII
+\connect -reuse-previous=on "dbname='barcode-buddy'"
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
 CREATE SCHEMA public;
 
--- Grant permissions to the database user
-GRANT ALL ON SCHEMA public TO postgres;
-
--- Disable foreign key checks to avoid constraint issues during import
-SET session_replication_role = replica;
 
 --
--- TOC entry 1261 (class 1247 OID 29534)
--- Name: message_sender; Type: TYPE; Schema: public; Owner: -
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
 --
 
-CREATE TYPE public.message_sender AS ENUM (
-    'staff',
-    'customer'
-);
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
 
 --
--- TOC entry 1264 (class 1247 OID 29540)
--- Name: venue_status; Type: TYPE; Schema: public; Owner: -
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: -
 --
 
-CREATE TYPE public.venue_status AS ENUM (
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+
+
+--
+-- Name: venues_status_enum; Type: TYPE; Schema: public; Owner: -
+--
+
+CREATE TYPE public.venues_status_enum AS ENUM (
     'active',
     'inactive',
     'under construction'
 );
+
 
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- TOC entry 276 (class 1259 OID 29721)
 -- Name: assistance_requests; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.assistance_requests (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     venue_table_id uuid NOT NULL,
     request_type_id integer NOT NULL,
-    status text DEFAULT 'pending'::text,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    metadata jsonb,
-    CONSTRAINT assistance_requests_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'accepted'::text, 'completed'::text, 'cancelled'::text])))
+    status text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    metadata jsonb
 );
 
+
 --
--- TOC entry 277 (class 1259 OID 29731)
 -- Name: campaigns; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.campaigns (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     title text NOT NULL,
     description text,
     start_date timestamp with time zone NOT NULL,
-    end_date timestamp with time zone,
-    status text DEFAULT 'active'::text,
+    end_date timestamp with time zone NOT NULL,
+    status text NOT NULL,
     image_url text,
     video_url text,
-    discount_type text DEFAULT 'percentage'::text,
-    discount_value numeric(10,2),
+    discount_type text,
+    discount_value numeric,
     combo_deal text,
     menu_items jsonb,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT campaigns_discount_type_check CHECK ((discount_type = ANY (ARRAY['percentage'::text, 'fixed'::text]))),
-    CONSTRAINT campaigns_status_check CHECK ((status = ANY (ARRAY['active'::text, 'inactive'::text, 'archived'::text])))
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+
 --
--- TOC entry 278 (class 1259 OID 29743)
 -- Name: cart_items; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.cart_items (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     cart_id uuid NOT NULL,
     menu_item_id uuid NOT NULL,
     quantity integer NOT NULL,
-    price numeric(10,2) NOT NULL,
-    total_price numeric(10,2) NOT NULL,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    price numeric NOT NULL,
+    total_price numeric NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+
 --
--- TOC entry 279 (class 1259 OID 29749)
 -- Name: carts; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.carts (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     venue_table_id uuid NOT NULL,
     user_id uuid NOT NULL,
-    total_price numeric(10,2) DEFAULT 0.00,
-    status text DEFAULT 'active'::text,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT carts_status_check CHECK ((status = ANY (ARRAY['active'::text, 'completed'::text, 'abandoned'::text])))
+    total_price numeric NOT NULL,
+    status text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+
 --
--- TOC entry 280 (class 1259 OID 29760)
 -- Name: inventory; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.inventory (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     description text,
-    quantity integer DEFAULT 0,
-    threshold_value integer DEFAULT 0,
-    unit_price numeric(10,2),
+    quantity integer NOT NULL,
+    threshold_value integer NOT NULL,
+    unit_price numeric NOT NULL,
     expiration_date date,
     notes text,
     last_received timestamp with time zone,
     last_used timestamp with time zone,
-    is_active boolean DEFAULT true,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
---
--- TOC entry 281 (class 1259 OID 29771)
--- Name: menu_items; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.menu_items (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
-    section_id uuid NOT NULL,
-    name text NOT NULL,
-    description text,
-    price numeric(10,2) NOT NULL,
-    image_url text,
-    is_vegan boolean DEFAULT false,
-    is_gluten_free boolean DEFAULT false,
-    is_spicy boolean DEFAULT false,
-    allergens text[],
-    available boolean DEFAULT true,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    is_discounted boolean DEFAULT false,
-    discount_price numeric(10,2) DEFAULT NULL::numeric
-);
 
 --
--- TOC entry 282 (class 1259 OID 29785)
--- Name: menu_sections; Type: TABLE; Schema: public; Owner: -
+-- Name: menu_categories; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.menu_sections (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+CREATE TABLE public.menu_categories (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     menu_id uuid NOT NULL,
     name text NOT NULL,
     description text,
     display_order integer NOT NULL,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+
 --
--- TOC entry 283 (class 1259 OID 29793)
+-- Name: menu_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.menu_items (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    section_id uuid NOT NULL,
+    name text NOT NULL,
+    description text,
+    price numeric NOT NULL,
+    image_url text,
+    is_vegan boolean DEFAULT false NOT NULL,
+    is_gluten_free boolean DEFAULT false NOT NULL,
+    is_spicy boolean DEFAULT false NOT NULL,
+    allergens text[],
+    available boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    is_discounted boolean DEFAULT false NOT NULL,
+    discount_price numeric
+);
+
+
+--
 -- Name: menus; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.menus (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     venue_id uuid NOT NULL,
     name text NOT NULL,
     description text,
-    currency text DEFAULT 'USD'::text,
-    is_active boolean DEFAULT true,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT menus_currency_check CHECK ((currency = ANY (ARRAY['USD'::text, 'EUR'::text, 'GBP'::text, 'INR'::text, 'AUD'::text])))
+    currency text NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    category_id uuid NOT NULL,
+    tags text[] DEFAULT '{}'::text[] NOT NULL,
+    price double precision NOT NULL,
+    variants jsonb,
+    image text,
+    popular boolean DEFAULT false NOT NULL,
+    available boolean DEFAULT true NOT NULL,
+    "preparationTime" text,
+    ingredients text[] DEFAULT '{}'::text[] NOT NULL,
+    allergens text[] DEFAULT '{}'::text[] NOT NULL,
+    calories integer,
+    discount double precision DEFAULT '0'::double precision NOT NULL,
+    dietary jsonb,
+    rating double precision,
+    "reviewsCount" integer,
+    "comboDetails" jsonb,
+    "internalNotes" text,
+    status text DEFAULT 'draft'::text NOT NULL
 );
 
+
 --
--- TOC entry 284 (class 1259 OID 29804)
+-- Name: migrations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.migrations (
+    id integer NOT NULL,
+    "timestamp" bigint NOT NULL,
+    name character varying NOT NULL
+);
+
+
+--
+-- Name: migrations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.migrations_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: migrations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.migrations_id_seq OWNED BY public.migrations.id;
+
+
+--
 -- Name: order_customization_requests; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.order_customization_requests (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
-    order_id uuid,
-    venue_id uuid,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    order_id uuid NOT NULL,
+    venue_id uuid NOT NULL,
     request_details jsonb NOT NULL,
-    status text DEFAULT 'pending'::text,
-    created_at timestamp with time zone DEFAULT now(),
-    responded_at timestamp with time zone,
-    CONSTRAINT order_customization_requests_status_check CHECK ((status = ANY (ARRAY['pending'::text, 'accepted'::text, 'declined'::text])))
+    status text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    responded_at timestamp with time zone
 );
 
+
 --
--- TOC entry 285 (class 1259 OID 29813)
 -- Name: order_items; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.order_items (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     order_id uuid NOT NULL,
     menu_item_id uuid NOT NULL,
     quantity integer NOT NULL,
-    price numeric(10,2) NOT NULL,
-    total_price numeric(10,2) NOT NULL,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    price numeric NOT NULL,
+    total_price numeric NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+
 --
--- TOC entry 286 (class 1259 OID 29819)
 -- Name: order_messages; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.order_messages (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     order_id uuid NOT NULL,
-    sender public.message_sender NOT NULL,
     message text NOT NULL,
-    created_at timestamp with time zone DEFAULT now()
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    sender text NOT NULL
 );
 
+
 --
--- TOC entry 287 (class 1259 OID 29826)
 -- Name: order_status; Type: TABLE; Schema: public; Owner: -
 --
 
-DROP TABLE IF EXISTS public.order_status;
-
 CREATE TABLE public.order_status (
     status_id integer NOT NULL,
-    status_name character varying(50) NOT NULL,
-    PRIMARY KEY (status_id)
+    status_name character varying(50) NOT NULL
 );
+
+
 --
--- TOC entry 288 (class 1259 OID 29829)
+-- Name: order_status_status_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.order_status_status_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: order_status_status_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.order_status_status_id_seq OWNED BY public.order_status.status_id;
+
+
+--
 -- Name: orders; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.orders (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
-    total_price numeric(10,2) NOT NULL,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    order_status_id integer,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    total_price numeric NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    order_status_id integer NOT NULL,
     venue_id uuid NOT NULL,
     table_number text NOT NULL
 );
 
+
 --
--- TOC entry 289 (class 1259 OID 29835)
 -- Name: payments; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.payments (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     order_id uuid NOT NULL,
-    amount numeric(10,2) NOT NULL,
+    amount numeric NOT NULL,
     payment_method text NOT NULL,
-    payment_status text DEFAULT 'pending'::text,
+    payment_status text NOT NULL,
     transaction_id text,
-    payment_date timestamp with time zone DEFAULT now(),
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT payments_payment_method_check CHECK ((payment_method = ANY (ARRAY['credit_card'::text, 'debit_card'::text, 'paypal'::text, 'cash'::text, 'stripe'::text, 'bank_transfer'::text]))),
-    CONSTRAINT payments_payment_status_check CHECK ((payment_status = ANY (ARRAY['pending'::text, 'completed'::text, 'failed'::text, 'refunded'::text])))
+    payment_date timestamp with time zone NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+
 --
--- TOC entry 290 (class 1259 OID 29847)
 -- Name: request_types; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -305,13 +379,13 @@ CREATE TABLE public.request_types (
     id integer NOT NULL,
     type_name text NOT NULL,
     description text,
-    is_active boolean DEFAULT true,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+
 --
--- TOC entry 291 (class 1259 OID 29855)
 -- Name: request_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
@@ -323,206 +397,265 @@ CREATE SEQUENCE public.request_types_id_seq
     NO MAXVALUE
     CACHE 1;
 
+
 --
--- TOC entry 4203 (class 0 OID 0)
--- Dependencies: 291
 -- Name: request_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.request_types_id_seq OWNED BY public.request_types.id;
 
-DROP TABLE IF EXISTS public.roles;
+
 --
--- TOC entry 292 (class 1259 OID 29856)
 -- Name: roles; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.roles (
     role_id integer NOT NULL,
-    role_name character varying(50) NOT NULL,
-    PRIMARY KEY (role_id)
+    role_name character varying(50) NOT NULL
 );
+
+
 --
--- TOC entry 293 (class 1259 OID 29859)
+-- Name: roles_role_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.roles_role_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: roles_role_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.roles_role_id_seq OWNED BY public.roles.role_id;
+
+
+--
 -- Name: surveillance; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.surveillance (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     camera_name text NOT NULL,
     camera_type text NOT NULL,
     camera_location text NOT NULL,
-    camera_status boolean DEFAULT true,
+    camera_status boolean NOT NULL,
     camera_url text,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT surveillance_camera_type_check CHECK ((camera_type = ANY (ARRAY['indoor'::text, 'outdoor'::text, 'ptz'::text])))
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+
 --
--- TOC entry 294 (class 1259 OID 29869)
 -- Name: teams; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.teams (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
-    user_id uuid,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
     team_name text NOT NULL,
     phone text,
     address text,
-    working_hours integer,
-    start_date timestamp with time zone DEFAULT now(),
+    working_hours integer NOT NULL,
+    start_date timestamp with time zone NOT NULL,
     end_date timestamp with time zone,
-    is_active boolean DEFAULT true,
-    payment_type text,
-    salary_or_rate numeric(10,2),
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    role_id integer,
-    venue_id uuid
+    is_active boolean DEFAULT true NOT NULL,
+    payment_type text NOT NULL,
+    salary_or_rate numeric NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    role_id integer NOT NULL,
+    venue_id uuid NOT NULL
 );
 
+
 --
--- TOC entry 295 (class 1259 OID 29879)
 -- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.users (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     email text NOT NULL,
     password text NOT NULL,
-    first_name text,
-    last_name text,
+    first_name text NOT NULL,
+    last_name text NOT NULL,
     profile_picture text,
-    is_deleted boolean DEFAULT false,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    role_id integer
+    is_deleted boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    role_id integer NOT NULL
 );
 
+
 --
--- TOC entry 296 (class 1259 OID 29888)
 -- Name: venue_daily_analytics; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.venue_daily_analytics (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     venue_id uuid NOT NULL,
-    date date DEFAULT CURRENT_DATE NOT NULL,
-    total_orders integer DEFAULT 0,
-    orders_in_progress integer DEFAULT 0,
-    cancelled_orders integer DEFAULT 0,
-    total_revenue numeric(10,2) DEFAULT 0.0,
-    average_order_value numeric(10,2) DEFAULT 0.0,
-    customer_count integer DEFAULT 0,
-    inventory_low_stock_count integer DEFAULT 0,
-    employees_active_count integer DEFAULT 0,
-    tables_filled integer DEFAULT 0,
-    tables_empty integer DEFAULT 0,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    date date NOT NULL,
+    total_orders integer NOT NULL,
+    orders_in_progress integer NOT NULL,
+    cancelled_orders integer NOT NULL,
+    total_revenue numeric NOT NULL,
+    average_order_value numeric NOT NULL,
+    customer_count integer NOT NULL,
+    inventory_low_stock_count integer NOT NULL,
+    employees_active_count integer NOT NULL,
+    tables_filled integer NOT NULL,
+    tables_empty integer NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+
 --
--- TOC entry 297 (class 1259 OID 29905)
 -- Name: venue_tables; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.venue_tables (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     venue_id uuid NOT NULL,
     table_number text NOT NULL,
     qr_code text NOT NULL,
-    status text DEFAULT 'available'::text,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    table_name text,
-    CONSTRAINT venue_tables_status_check CHECK ((status = ANY (ARRAY['available'::text, 'occupied'::text, 'reserved'::text])))
+    status text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    table_name text
 );
 
+
 --
--- TOC entry 298 (class 1259 OID 29915)
 -- Name: venue_types; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.venue_types (
     id integer NOT NULL,
-    name text NOT NULL,
-    CONSTRAINT venue_types_name_check CHECK ((name = ANY (ARRAY['Restaurant'::text, 'Casino'::text, 'Bar'::text, 'Club'::text, 'Hybrid'::text])))
+    name text NOT NULL
 );
 
+
 --
--- TOC entry 299 (class 1259 OID 29921)
+-- Name: venue_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.venue_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: venue_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.venue_types_id_seq OWNED BY public.venue_types.id;
+
+
+--
 -- Name: venue_washrooms; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.venue_washrooms (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     venue_id uuid NOT NULL,
     navigational_direction text NOT NULL,
     location jsonb NOT NULL,
-    status text DEFAULT 'available'::text,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
-    CONSTRAINT venue_washrooms_status_check CHECK ((status = ANY (ARRAY['available'::text, 'occupied'::text, 'out_of_order'::text])))
+    status text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+
 --
--- TOC entry 300 (class 1259 OID 29931)
 -- Name: venue_workers; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.venue_workers (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     venue_id uuid NOT NULL,
     user_id uuid NOT NULL,
     role_id uuid NOT NULL,
     permissions jsonb,
-    is_deleted boolean DEFAULT false,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now()
+    is_deleted boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
+
 --
--- TOC entry 301 (class 1259 OID 29940)
 -- Name: venues; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.venues (
-   id uuid DEFAULT gen_random_uuid() NOT NULL,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
     address text NOT NULL,
-    city text,
-    state text,
-    postal_code text,
-    country text,
-    phone_number text,
+    city text NOT NULL,
+    state text NOT NULL,
+    postal_code text NOT NULL,
+    country text NOT NULL,
+    phone_number text NOT NULL,
     website_url text,
     total_tables integer NOT NULL,
-    capacity integer,
-    status public.venue_status DEFAULT 'active'::public.venue_status,
+    capacity integer NOT NULL,
+    status public.venues_status_enum DEFAULT 'active'::public.venues_status_enum NOT NULL,
     description text,
     logo_url text,
-    business_hours jsonb,
-    is_deleted boolean DEFAULT false,
-    created_at timestamp with time zone DEFAULT now(),
-    updated_at timestamp with time zone DEFAULT now(),
+    business_hours jsonb NOT NULL,
+    is_deleted boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
     welcome_message text,
     usp text,
-    specialties text[],
+    specialties text[] NOT NULL,
     venue_type_id integer NOT NULL
 );
 
+
 --
--- TOC entry 3867 (class 2604 OID 30062)
+-- Name: migrations id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.migrations ALTER COLUMN id SET DEFAULT nextval('public.migrations_id_seq'::regclass);
+
+
+--
+-- Name: order_status status_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_status ALTER COLUMN status_id SET DEFAULT nextval('public.order_status_status_id_seq'::regclass);
+
+
+--
 -- Name: request_types id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.request_types ALTER COLUMN id SET DEFAULT nextval('public.request_types_id_seq'::regclass);
 
+
 --
--- TOC entry 4171 (class 0 OID 29721)
--- Dependencies: 276
+-- Name: roles role_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.roles ALTER COLUMN role_id SET DEFAULT nextval('public.roles_role_id_seq'::regclass);
+
+
+--
+-- Name: venue_types id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.venue_types ALTER COLUMN id SET DEFAULT nextval('public.venue_types_id_seq'::regclass);
+
+
+--
 -- Data for Name: assistance_requests; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -550,45 +683,57 @@ d72392c4-2c4e-4151-910b-2d185b4c0f7f	2a5f2f79-b0de-426e-8b30-d558c0d3920c	1	pend
 217168dc-cd84-4c65-b5b8-0cbfb570b1c6	2a5f2f79-b0de-426e-8b30-d558c0d3920c	1	pending	2025-04-01 15:58:32.471306+00	2025-04-01 15:58:32.471306+00	\N
 \.
 
+
 --
--- TOC entry 4172 (class 0 OID 29731)
--- Dependencies: 277
 -- Data for Name: campaigns; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.campaigns (id, title, description, start_date, end_date, status, image_url, video_url, discount_type, discount_value, combo_deal, menu_items, created_at, updated_at) FROM stdin;
 \.
 
+
 --
--- TOC entry 4173 (class 0 OID 29743)
--- Dependencies: 278
 -- Data for Name: cart_items; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.cart_items (id, cart_id, menu_item_id, quantity, price, total_price, created_at, updated_at) FROM stdin;
 \.
 
+
 --
--- TOC entry 4174 (class 0 OID 29749)
--- Dependencies: 279
 -- Data for Name: carts; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.carts (id, venue_table_id, user_id, total_price, status, created_at, updated_at) FROM stdin;
 \.
 
+
 --
--- TOC entry 4175 (class 0 OID 29760)
--- Dependencies: 280
 -- Data for Name: inventory; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.inventory (id, name, description, quantity, threshold_value, unit_price, expiration_date, notes, last_received, last_used, is_active, created_at, updated_at) FROM stdin;
 \.
 
+
 --
--- TOC entry 4176 (class 0 OID 29771)
--- Dependencies: 281
+-- Data for Name: menu_categories; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.menu_categories (id, menu_id, name, description, display_order, created_at, updated_at) FROM stdin;
+5d61660b-6326-4fdc-ad33-7426a3348526	d760209e-17cd-441a-a095-860417321ccd	Snacks	Quick bites to keep you in the game	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
+cae08550-1255-4a19-bdb3-b1a691b4ce0b	d760209e-17cd-441a-a095-860417321ccd	Drinks	Refreshing beverages	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
+71ab0530-6f24-4d77-b324-0322ca07a0fc	22b752a6-f41f-45bd-a724-58760db0dfab	Signature Cocktails	Exclusive drinks for VIPs	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
+c1692d82-779f-4859-bfae-dc67320bba30	22b752a6-f41f-45bd-a724-58760db0dfab	Premium Spirits	Top-shelf selections	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
+607fe1cb-be13-43ac-98e9-15b610c47016	32c50d09-b552-44d8-a631-2483752aee12	Appetizers	Start your meal with flair	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
+eed00b32-2e2e-4f4b-8e89-a0a8706968fc	32c50d09-b552-44d8-a631-2483752aee12	Main Courses	Satisfying entrees	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
+165617b9-678c-4f12-91c9-461ab79d3e34	32c50d09-b552-44d8-a631-2483752aee12	Desserts	Sweet finishes	3	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
+38cbcbdd-0282-485d-8d14-82a4f983aa10	54aa4b2e-c7b1-495a-a3fe-ea0b92ea3c83	Classic Cocktails	Timeless favorites	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
+155157d7-b8ce-4ebf-8b1c-2e7e2852e67f	54aa4b2e-c7b1-495a-a3fe-ea0b92ea3c83	House Specials	Unique creations	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
+\.
+
+
+--
 -- Data for Name: menu_items; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -610,49 +755,34 @@ d9d537bc-49b1-4ad9-9874-0269dec5f1ce	5d61660b-6326-4fdc-ad33-7426a3348526	Loaded
 d80df6a8-eb66-4d1b-90ce-d8b34e648dfe	155157d7-b8ce-4ebf-8b1c-2e7e2852e67f	Smoky Paloma	Mezcal, grapefruit, and a smoked salt rim	13.99	https://tastehaven.com/paloma.jpg	f	t	f	\N	t	2025-03-01 16:37:14.583169+00	2025-03-01 16:37:14.583169+00	f	\N
 \.
 
---
--- TOC entry 4177 (class 0 OID 29785)
--- Dependencies: 282
--- Data for Name: menu_sections; Type: TABLE DATA; Schema: public; Owner: -
---
-
-COPY public.menu_sections (id, menu_id, name, description, display_order, created_at, updated_at) FROM stdin;
-5d61660b-6326-4fdc-ad33-7426a3348526	d760209e-17cd-441a-a095-860417321ccd	Snacks	Quick bites to keep you in the game	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-cae08550-1255-4a19-bdb3-b1a691b4ce0b	d760209e-17cd-441a-a095-860417321ccd	Drinks	Refreshing beverages	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-71ab0530-6f24-4d77-b324-0322ca07a0fc	22b752a6-f41f-45bd-a724-58760db0dfab	Signature Cocktails	Exclusive drinks for VIPs	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-c1692d82-779f-4859-bfae-dc67320bba30	22b752a6-f41f-45bd-a724-58760db0dfab	Premium Spirits	Top-shelf selections	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-607fe1cb-be13-43ac-98e9-15b610c47016	32c50d09-b552-44d8-a631-2483752aee12	Appetizers	Start your meal with flair	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-eed00b32-2e2e-4f4b-8e89-a0a8706968fc	32c50d09-b552-44d8-a631-2483752aee12	Main Courses	Satisfying entrees	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-165617b9-678c-4f12-91c9-461ab79d3e34	32c50d09-b552-44d8-a631-2483752aee12	Desserts	Sweet finishes	3	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-38cbcbdd-0282-485d-8d14-82a4f983aa10	54aa4b2e-c7b1-495a-a3fe-ea0b92ea3c83	Classic Cocktails	Timeless favorites	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-155157d7-b8ce-4ebf-8b1c-2e7e2852e67f	54aa4b2e-c7b1-495a-a3fe-ea0b92ea3c83	House Specials	Unique creations	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-\.
 
 --
--- TOC entry 4178 (class 0 OID 29793)
--- Dependencies: 283
 -- Data for Name: menus; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.menus (id, venue_id, name, description, currency, is_active, created_at, updated_at) FROM stdin;
-d760209e-17cd-441a-a095-860417321ccd	012eeaab-5160-4e61-93af-41fdb59250f2	Casino Lounge Menu	Quick bites and drinks for gamers	USD	t	2025-03-01 16:36:38.333533+00	2025-03-01 16:36:38.333533+00
-22b752a6-f41f-45bd-a724-58760db0dfab	012eeaab-5160-4e61-93af-41fdb59250f2	VIP Bar Menu	Premium cocktails for high rollers	USD	t	2025-03-01 16:36:38.333533+00	2025-03-01 16:36:38.333533+00
-32c50d09-b552-44d8-a631-2483752aee12	2f591481-0742-4f7d-93fa-8cafac27a57c	Dinner Menu	Hearty meals for evening diners	USD	t	2025-03-01 16:36:38.333533+00	2025-03-01 16:36:38.333533+00
-54aa4b2e-c7b1-495a-a3fe-ea0b92ea3c83	2f591481-0742-4f7d-93fa-8cafac27a57c	Craft Cocktail Menu	Artisanal drinks for the bar crowd	USD	t	2025-03-01 16:36:38.333533+00	2025-03-01 16:36:38.333533+00
+COPY public.menus (id, venue_id, name, description, currency, is_active, created_at, updated_at, category_id, tags, price, variants, image, popular, available, "preparationTime", ingredients, allergens, calories, discount, dietary, rating, "reviewsCount", "comboDetails", "internalNotes", status) FROM stdin;
+ab484514-8e43-48bf-aff4-7e893822680a	012eeaab-5160-4e61-93af-41fdb59250f2	Garlic Breadsticks	Warm breadsticks brushed with garlic butter and herbs	USD	t	2025-05-23 22:44:27.489757+00	2025-05-23 22:44:27.489757+00	5d61660b-6326-4fdc-ad33-7426a3348526	{Vegetarian,"Kids Favorite"}	5.99	[]	/images/appetizers/garlic-breadsticks.jpg	t	t	10 min	{Flour,Garlic,Butter,Herbs}	{Gluten,Dairy}	320	0	{"vegan": false, "glutenFree": false, "vegetarian": true}	4.3	78	\N	Offer garlic dip by default	published
 \.
 
+
 --
--- TOC entry 4179 (class 0 OID 29804)
--- Dependencies: 284
+-- Data for Name: migrations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.migrations (id, "timestamp", name) FROM stdin;
+1	1748035406085	RenameMenuSectionsToMenuCategories1748035406085
+\.
+
+
+--
 -- Data for Name: order_customization_requests; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.order_customization_requests (id, order_id, venue_id, request_details, status, created_at, responded_at) FROM stdin;
 \.
 
+
 --
--- TOC entry 4180 (class 0 OID 29813)
--- Dependencies: 285
 -- Data for Name: order_items; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -679,18 +809,16 @@ b9bdc882-0cd9-401b-89e2-ee91bd68baa4	f89429e9-17d2-4817-84bf-3511fd672548	6c4e12
 437b446a-1eff-42d8-9681-90320a7fa3e1	0af86b68-56fa-49e1-90d9-06f7cc04be84	6c4e121b-aaea-4804-b1f1-9190261a8f83	7	3.99	27.93	2025-04-06 18:51:39.398269+00	2025-04-06 18:51:39.398269+00
 \.
 
+
 --
--- TOC entry 4181 (class 0 OID 29819)
--- Dependencies: 286
 -- Data for Name: order_messages; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.order_messages (id, order_id, sender, message, created_at) FROM stdin;
+COPY public.order_messages (id, order_id, message, created_at, sender) FROM stdin;
 \.
 
+
 --
--- TOC entry 4182 (class 0 OID 29826)
--- Dependencies: 287
 -- Data for Name: order_status; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -701,9 +829,8 @@ COPY public.order_status (status_id, status_name) FROM stdin;
 4	Complete
 \.
 
+
 --
--- TOC entry 4183 (class 0 OID 29829)
--- Dependencies: 288
 -- Data for Name: orders; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -727,9 +854,8 @@ f89429e9-17d2-4817-84bf-3511fd672548	83.85	2025-04-06 18:51:37.263828+00	2025-04
 0af86b68-56fa-49e1-90d9-06f7cc04be84	83.85	2025-04-06 18:51:38.577607+00	2025-04-06 18:51:38.577607+00	1	012eeaab-5160-4e61-93af-41fdb59250f2	1
 \.
 
+
 --
--- TOC entry 4184 (class 0 OID 29835)
--- Dependencies: 289
 -- Data for Name: payments; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -738,9 +864,8 @@ COPY public.payments (id, order_id, amount, payment_method, payment_status, tran
 8ae3f459-9bf2-4773-85b7-fde392f1bf33	84c58948-d2ef-457a-a4e1-f30582126e7d	31.97	cash	completed	\N	2025-03-02 12:15:00+00	2025-03-02 12:15:00+00	2025-03-02 12:15:00+00
 \.
 
+
 --
--- TOC entry 4185 (class 0 OID 29847)
--- Dependencies: 290
 -- Data for Name: request_types; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -754,9 +879,8 @@ COPY public.request_types (id, type_name, description, is_active, created_at, up
 7	extra_napkins	Request additional napkins	t	2025-03-05 21:12:47.87536+00	2025-03-05 21:12:47.87536+00
 \.
 
+
 --
--- TOC entry 4187 (class 0 OID 29856)
--- Dependencies: 292
 -- Data for Name: roles; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -766,18 +890,16 @@ COPY public.roles (role_id, role_name) FROM stdin;
 2	Team_Member
 \.
 
+
 --
--- TOC entry 4188 (class 0 OID 29859)
--- Dependencies: 293
 -- Data for Name: surveillance; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.surveillance (id, camera_name, camera_type, camera_location, camera_status, camera_url, created_at, updated_at) FROM stdin;
 \.
 
+
 --
--- TOC entry 4189 (class 0 OID 29869)
--- Dependencies: 294
 -- Data for Name: teams; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -790,9 +912,8 @@ f7440bc8-d1d7-43fe-bbd9-8f91120ee2b2	06599908-5bc5-4d42-999c-aa5ffdff8200	Restau
 8f11298d-b881-4232-855a-e74a6d5cc7ba	0bb9f81a-7803-4b34-a349-55416611fb5c	Kitchen Crew	555-222-3333	456 Chef Ave, New York, NY 10001	35	2025-02-01 00:00:00+00	\N	t	hourly	28.00	2025-03-01 16:47:42.400775+00	2025-03-01 16:47:42.400775+00	2	2f591481-0742-4f7d-93fa-8cafac27a57c
 \.
 
+
 --
--- TOC entry 4190 (class 0 OID 29879)
--- Dependencies: 295
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
@@ -803,19 +924,17 @@ d1c24c2e-35fa-42fb-8db9-72fc6c346777	dealer@luckystarcasino.com	hashed_password_
 ec9b9eea-4cca-4816-93e0-326a22cc6b10	admin@tastehaven.com	hashed_password_4	Emma	Wilson	https://tastehaven.com/emma.jpg	f	2025-03-01 16:44:58.884333+00	2025-03-01 16:44:58.884333+00	0
 06599908-5bc5-4d42-999c-aa5ffdff8200	manager@tastehaven.com	hashed_password_5	David	Lee	https://tastehaven.com/david.jpg	f	2025-03-01 16:44:58.884333+00	2025-03-01 16:44:58.884333+00	1
 0bb9f81a-7803-4b34-a349-55416611fb5c	chef@tastehaven.com	hashed_password_6	Lisa	Brown	https://tastehaven.com/lisa.jpg	f	2025-03-01 16:44:58.884333+00	2025-03-01 16:44:58.884333+00	2
+fdc0082a-0fb8-48ad-87eb-0b19cf02f661	rishav@c.com	$2b$10$eysMwiFw1W0lTkRqd0kYH.B930QiNhcr66wRcmFoN6xYUGYUkk8Oi	Rishav	Rapta	\N	f	2025-05-22 20:37:15.398036+00	2025-05-22 20:37:15.398036+00	2
 \.
 
+
 --
--- TOC entry 4191 (class 0 OID 29888)
--- Dependencies: 296
 -- Data for Name: venue_daily_analytics; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.venue_daily_analytics (id, venue_id, date, total_orders, orders_in_progress, cancelled_orders, total_revenue, average_order_value, customer_count, inventory_low_stock_count, employees_active_count, tables_filled, tables_empty, created_at, updated_at) FROM stdin;
 \.
 
---
--- TOC entry 4192 (class 0 OID
 
 --
 -- Data for Name: venue_tables; Type: TABLE DATA; Schema: public; Owner: -
@@ -827,6 +946,7 @@ d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a	2f591481-0742-4f7d-93fa-8cafac27a57c	2	http
 e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b	012eeaab-5160-4e61-93af-41fdb59250f2	3	https://luckystarcasino.com/qr/table3	reserved	2025-03-01 16:00:00+00	2025-04-03 21:00:00+00	VIP Table
 \.
 
+
 --
 -- Data for Name: venue_types; Type: TABLE DATA; Schema: public; Owner: -
 --
@@ -836,6 +956,7 @@ COPY public.venue_types (id, name) FROM stdin;
 2	Restaurant
 3	Bar
 \.
+
 
 --
 -- Data for Name: venue_washrooms; Type: TABLE DATA; Schema: public; Owner: -
@@ -847,21 +968,269 @@ a7b8c9d0-e1f2-4a3b-5c6d-7e8f9a0b1c2d	2f591481-0742-4f7d-93fa-8cafac27a57c	Back o
 b8c9d0e1-f2a3-4b5c-6d7e-8f9a0b1c2d3e	012eeaab-5160-4e61-93af-41fdb59250f2	Near slot machines, east wing	{"floor": 2, "section": "Gaming Floor"}	out_of_order	2025-03-01 16:00:00+00	2025-04-03 21:00:00+00
 \.
 
---
--- Data for Name: venues; Type: TABLE DATA; Schema: public; Owner: -
---
-
-COPY public.venues (id, name, address, city, state, postal_code, country, phone_number, website_url, total_tables, capacity, status, description, logo_url, business_hours, is_deleted, created_at, updated_at, welcome_message, usp, specialties, venue_type_id) FROM stdin;
-012eeaab-5160-4e61-93af-41fdb59250f2	Lucky Star Casino	789 Vegas Blvd	Las Vegas	NV	89109	USA	555-111-2222	https://luckystarcasino.com	50	500	active	Premier casino with dining and entertainment	https://luckystarcasino.com/logo.png	{"mon": "00:00-23:59", "tue": "00:00-23:59", "wed": "00:00-23:59", "thu": "00:00-23:59", "fri": "00:00-23:59", "sat": "00:00-23:59", "sun": "00:00-23:59"}	f	2025-03-01 16:00:00+00	2025-03-01 16:00:00+00	Welcome to Lucky Star!	Top-tier gaming and dining	{gaming, cocktails}	1
-2f591481-0742-4f7d-93fa-8cafac27a57c	Taste Haven	101 Main St	New York	NY	10001	USA	555-777-8888	https://tastehaven.com	30	150	active	Fine dining with a modern twist	https://tastehaven.com/logo.png	{"mon": "11:00-22:00", "tue": "11:00-22:00", "wed": "11:00-22:00", "thu": "11:00-22:00", "fri": "11:00-23:00", "sat": "11:00-23:00", "sun": "12:00-21:00"}	f	2025-03-01 16:00:00+00	2025-03-01 16:00:00+00	Enjoy your meal at Taste Haven!	Fresh ingredients, craft cocktails	{seafood, desserts}	2
-\.
 
 --
 -- Data for Name: venue_workers; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.venue_workers (id, venue_id, user_id, role_id, permissions, is_deleted, created_at, updated_at) FROM stdin;
-c9d0e1f2-a3b4-4c5d-6e7f-9a0b1c2d3e4f	012eeaab-5160-4e61-93af-41fdb59250f2	c7631a04-dcff-4126-b37e-ddf7781f1fc4	00000000-0000-0000-0000-000000000000	{"can_manage_menu": true, "can_view_analytics": true}	f	2025-03-01 16:00:00+00	2025-03-01 16:00:00+00
-d0e1f2a3-b4c5-4d6e-7f8a-9b0c1d2e3f4a	012eeaab-5160-4e61-93af-41fdb59250f2	f2c5db8a-f521-47b8-b7da-5a68d32370c5	11111111-1111-1111-1111-111111111111	{"can_manage_orders": true}	f	2025-03-01 16:00:00+00	2025-03-01 16:00:00+00
-e1f2a3b4-c5d6-4e7f-8a9b-0c1d2e3f4a5b	2f591481-0742-4f7d-93fa-8cafac27a57c	ec9b9eea-4cca-4816-93e0-326a22cc6b10	00000000-0000-0000-0000-000000000000	{"can_manage_menu": true, "can_view_analytics": true}	f	2025-03-01 16:00:00+00	2025-03-01 16:00:00+00
 \.
+
+
+--
+-- Data for Name: venues; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.venues (id, name, address, city, state, postal_code, country, phone_number, website_url, total_tables, capacity, status, description, logo_url, business_hours, is_deleted, created_at, updated_at, welcome_message, usp, specialties, venue_type_id) FROM stdin;
+012eeaab-5160-4e61-93af-41fdb59250f2	Lucky Star Casino	789 Vegas Blvd	Las Vegas	NV	89109	USA	555-111-2222	https://luckystarcasino.com	50	500	active	Premier casino with dining and entertainment	https://luckystarcasino.com/logo.png	{"fri": "00:00-23:59", "mon": "00:00-23:59", "sat": "00:00-23:59", "sun": "00:00-23:59", "thu": "00:00-23:59", "tue": "00:00-23:59", "wed": "00:00-23:59"}	f	2025-03-01 16:00:00+00	2025-03-01 16:00:00+00	Welcome to Lucky Star!	Top-tier gaming and dining	{gaming,cocktails}	1
+2f591481-0742-4f7d-93fa-8cafac27a57c	Taste Haven	101 Main St	New York	NY	10001	USA	555-777-8888	https://tastehaven.com	30	150	active	Fine dining with a modern twist	https://tastehaven.com/logo.png	{"fri": "11:00-23:00", "mon": "11:00-22:00", "sat": "11:00-23:00", "sun": "12:00-21:00", "thu": "11:00-22:00", "tue": "11:00-22:00", "wed": "11:00-22:00"}	f	2025-03-01 16:00:00+00	2025-03-01 16:00:00+00	Enjoy your meal at Taste Haven!	Fresh ingredients, craft cocktails	{seafood,desserts}	2
+\.
+
+
+--
+-- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.migrations_id_seq', 1, true);
+
+
+--
+-- Name: order_status_status_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.order_status_status_id_seq', 1, false);
+
+
+--
+-- Name: request_types_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.request_types_id_seq', 1, false);
+
+
+--
+-- Name: roles_role_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.roles_role_id_seq', 1, false);
+
+
+--
+-- Name: venue_types_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.venue_types_id_seq', 1, false);
+
+
+--
+-- Name: order_items PK_005269d8574e6fac0493715c308; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_items
+    ADD CONSTRAINT "PK_005269d8574e6fac0493715c308" PRIMARY KEY (id);
+
+
+--
+-- Name: surveillance PK_0369268a70fd28161375e02aff4; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.surveillance
+    ADD CONSTRAINT "PK_0369268a70fd28161375e02aff4" PRIMARY KEY (id);
+
+
+--
+-- Name: payments PK_197ab7af18c93fbb0c9b28b4a59; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.payments
+    ADD CONSTRAINT "PK_197ab7af18c93fbb0c9b28b4a59" PRIMARY KEY (id);
+
+
+--
+-- Name: venue_types PK_225080d3c45297d563c3e03d190; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.venue_types
+    ADD CONSTRAINT "PK_225080d3c45297d563c3e03d190" PRIMARY KEY (id);
+
+
+--
+-- Name: venue_daily_analytics PK_235592f2d6d173b86770caf4e7c; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.venue_daily_analytics
+    ADD CONSTRAINT "PK_235592f2d6d173b86770caf4e7c" PRIMARY KEY (id);
+
+
+--
+-- Name: order_messages PK_25d8eb6fb6e1ccb6b33e034ee28; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_messages
+    ADD CONSTRAINT "PK_25d8eb6fb6e1ccb6b33e034ee28" PRIMARY KEY (id);
+
+
+--
+-- Name: menus PK_3fec3d93327f4538e0cbd4349c4; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menus
+    ADD CONSTRAINT "PK_3fec3d93327f4538e0cbd4349c4" PRIMARY KEY (id);
+
+
+--
+-- Name: menu_items PK_57e6188f929e5dc6919168620c8; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_items
+    ADD CONSTRAINT "PK_57e6188f929e5dc6919168620c8" PRIMARY KEY (id);
+
+
+--
+-- Name: venue_washrooms PK_595bb3fec3e5d467650bd647da0; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.venue_washrooms
+    ADD CONSTRAINT "PK_595bb3fec3e5d467650bd647da0" PRIMARY KEY (id);
+
+
+--
+-- Name: venue_tables PK_6b5ca0ab2b9cba8cd9d1da368e5; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.venue_tables
+    ADD CONSTRAINT "PK_6b5ca0ab2b9cba8cd9d1da368e5" PRIMARY KEY (id);
+
+
+--
+-- Name: cart_items PK_6fccf5ec03c172d27a28a82928b; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.cart_items
+    ADD CONSTRAINT "PK_6fccf5ec03c172d27a28a82928b" PRIMARY KEY (id);
+
+
+--
+-- Name: orders PK_710e2d4957aa5878dfe94e4ac2f; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.orders
+    ADD CONSTRAINT "PK_710e2d4957aa5878dfe94e4ac2f" PRIMARY KEY (id);
+
+
+--
+-- Name: request_types PK_795c261c2ebf6beb3f417acd40b; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.request_types
+    ADD CONSTRAINT "PK_795c261c2ebf6beb3f417acd40b" PRIMARY KEY (id);
+
+
+--
+-- Name: teams PK_7e5523774a38b08a6236d322403; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.teams
+    ADD CONSTRAINT "PK_7e5523774a38b08a6236d322403" PRIMARY KEY (id);
+
+
+--
+-- Name: inventory PK_82aa5da437c5bbfb80703b08309; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.inventory
+    ADD CONSTRAINT "PK_82aa5da437c5bbfb80703b08309" PRIMARY KEY (id);
+
+
+--
+-- Name: campaigns PK_831e3fcd4fc45b4e4c3f57a9ee4; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.campaigns
+    ADD CONSTRAINT "PK_831e3fcd4fc45b4e4c3f57a9ee4" PRIMARY KEY (id);
+
+
+--
+-- Name: migrations PK_8c82d7f526340ab734260ea46be; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.migrations
+    ADD CONSTRAINT "PK_8c82d7f526340ab734260ea46be" PRIMARY KEY (id);
+
+
+--
+-- Name: assistance_requests PK_944a7bc065921be9d453c8d4957; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.assistance_requests
+    ADD CONSTRAINT "PK_944a7bc065921be9d453c8d4957" PRIMARY KEY (id);
+
+
+--
+-- Name: users PK_a3ffb1c0c8416b9fc6f907b7433; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY (id);
+
+
+--
+-- Name: carts PK_b5f695a59f5ebb50af3c8160816; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.carts
+    ADD CONSTRAINT "PK_b5f695a59f5ebb50af3c8160816" PRIMARY KEY (id);
+
+
+--
+-- Name: venues PK_cb0f885278d12384eb7a81818be; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.venues
+    ADD CONSTRAINT "PK_cb0f885278d12384eb7a81818be" PRIMARY KEY (id);
+
+
+--
+-- Name: menu_categories PK_d9f9554edc03170cba756fecdb9; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.menu_categories
+    ADD CONSTRAINT "PK_d9f9554edc03170cba756fecdb9" PRIMARY KEY (id);
+
+
+--
+-- Name: venue_workers PK_e0d7a2006fabe443efb2972f635; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.venue_workers
+    ADD CONSTRAINT "PK_e0d7a2006fabe443efb2972f635" PRIMARY KEY (id);
+
+
+--
+-- Name: order_customization_requests PK_f29e22956f55df7a48cd5dc72b1; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_customization_requests
+    ADD CONSTRAINT "PK_f29e22956f55df7a48cd5dc72b1" PRIMARY KEY (id);
+
+
+--
+-- Name: order_status order_status_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.order_status
+    ADD CONSTRAINT order_status_pkey PRIMARY KEY (status_id);
+
+
+--
+-- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.roles
+    ADD CONSTRAINT roles_pkey PRIMARY KEY (role_id);
+
+
+--
+-- PostgreSQL database dump complete
+--
+

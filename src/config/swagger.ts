@@ -3,6 +3,8 @@ import swaggerUi from "swagger-ui-express";
 
 import { Express } from "express";
 
+const isProd = process.env.NODE_ENV === "production";
+
 export function setupSwagger(app: Express) {
   const swaggerOptions = {
     definition: {
@@ -23,7 +25,11 @@ export function setupSwagger(app: Express) {
         },
       },
     },
-    apis: ["./src/barcode-buddy/routes/*.ts"],
+    apis: [
+      isProd
+        ? "./dist/barcode-buddy/routes/*.js"
+        : "./src/barcode-buddy/routes/*.ts",
+    ],
   };
 
   const swaggerSpec = swaggerJsdoc(swaggerOptions);

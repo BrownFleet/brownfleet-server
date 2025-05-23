@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
-@Entity("menu_sections")
+@Entity("menu_categories")
 export class MenuSection {
   @PrimaryGeneratedColumn("uuid")
   id!: string;

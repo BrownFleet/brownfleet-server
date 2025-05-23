@@ -91,5 +91,7 @@ jobs:
             sudo docker-compose -f docker-compose.prod.yml --env-file ../.env pull
             sudo docker-compose -f docker-compose.prod.yml --env-file ../.env up -d
 
+            sudo docker exec brownfleet-api npm run migration:run:prod
+
             sudo docker ps
           EOF

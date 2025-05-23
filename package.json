@@ -7,10 +7,18 @@
     "dev": "nodemon src/server.ts",
     "build": "tsc",
     "test": "jest --passWithNoTests",
-    "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky install; fi",
+    "prepare": "npx --no-install husky install || true",
     "type-check": "tsc --noEmit",
     "format:check": "prettier --check .",
-    "find-circulars": "madge --circular src"
+    "find-circulars": "madge --circular src",
+    "typeorm": "typeorm-ts-node-commonjs -d src/config/database.ts",
+    "typeorm:prod": "typeorm -d dist/config/database.js",
+    "migration:generate": "cross-env TS_NODE_PROJECT=tsconfig.json npm run typeorm -- migration:generate src/migrations/",
+    "migration:run": "npm run typeorm migration:run",
+    "migration:run:prod": "npm run typeorm:prod migration:run",
+    "migration:revert": "npm run typeorm migration:revert",
+    "migration:revert:prod": "npm run typeorm:prod migration:revert",
+    "pg:dump": "cross-env ./scripts/pg-dump.sh"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.2",
@@ -23,7 +31,8 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.15",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "cross-env": "^7.0.3"
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",

@@ -11,6 +11,12 @@ export class MenuController {
 
   async getMenus(req: Request, res: Response): Promise<void> {
     const venueId = req.query.venueId as string;
+    const searchString = req.query.searchString as string | undefined;
+    const categoryId = req.query.categoryId as string | undefined;
+    const isItemAvailable =
+      req.query.isItemAvailable !== undefined
+        ? req.query.isItemAvailable === "true"
+        : undefined;
 
     if (!venueId) {
       res.status(400).json({ data: null, error: "Invalid or missing venueId" });
@@ -18,7 +24,12 @@ export class MenuController {
     }
 
     try {
-      const menus = await this.menuService.getMenusByVenueId(venueId);
+      const menus = await this.menuService.getMenusByVenueId(
+        venueId,
+        searchString,
+        categoryId,
+        isItemAvailable,
+      );
       res.status(200).json({ data: menus, error: null });
     } catch (error) {
       res.status(500).json({ data: null, error: (error as Error).message });
