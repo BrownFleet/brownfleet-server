@@ -42,7 +42,7 @@ export class Migrations1748039626399 implements MigrationInterface {
     await queryRunner.query(
       `ALTER TABLE "menus" ADD "status" text NOT NULL DEFAULT 'draft'`,
     );
-   await queryRunner.query(`
+    await queryRunner.query(`
   INSERT INTO "menus" (
     id,
     venue_id,
