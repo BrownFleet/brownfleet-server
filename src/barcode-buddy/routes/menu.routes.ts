@@ -43,7 +43,7 @@ const menuController = new MenuController();
  */
 router.get(
   "/menus",
-  authenticateToken,
+  // authenticateToken, TODO: add it once login logout UI added on F.E
   menuController.getMenus.bind(menuController),
 );
 
