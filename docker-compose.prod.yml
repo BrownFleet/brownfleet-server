@@ -53,7 +53,7 @@ services:
       resources:
         limits:
           cpus: "0.3"
-          memory: 300M
+          memory: 700M
     logging:
       driver: "json-file"
       options:

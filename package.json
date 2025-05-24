@@ -12,7 +12,7 @@
     "format:check": "prettier --check .",
     "find-circulars": "madge --circular src",
     "typeorm": "typeorm-ts-node-commonjs -d src/config/database.ts",
-    "typeorm:prod": "typeorm -d dist/config/database.js",
+    "typeorm:prod": "NODE_OPTIONS='--max-old-space-size=1024' typeorm -d dist/config/database.js",
     "migration:generate": "cross-env TS_NODE_PROJECT=tsconfig.json npm run typeorm -- migration:generate src/migrations/",
     "migration:run": "npm run typeorm migration:run",
     "migration:run:prod": "npm run typeorm:prod migration:run",
