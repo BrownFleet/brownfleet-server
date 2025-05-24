@@ -18,6 +18,9 @@ export class Team {
   teamName!: string;
 
   @Column({ type: "text", nullable: true })
+  email?: string;
+
+  @Column({ type: "text", nullable: true })
   phone?: string;
 
   @Column({ type: "text", nullable: true })
@@ -56,4 +59,13 @@ export class Team {
 
   @Column({ type: "uuid", name: "venue_id" })
   venueId!: string;
+
+  @Column({ type: "text", nullable: true })
+  status?: string;
+
+  @Column({ type: "text", nullable: true })
+  image?: string;
+
+  @Column({ type: "text", nullable: true })
+  lastActive?: string;
 }

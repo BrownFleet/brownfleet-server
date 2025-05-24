@@ -23,12 +23,21 @@ export class VenueTable {
   @Column({ type: "text" })
   status!: string;
 
+  @Column({ type: "integer", default: 0 })
+  capacity!: number;
+
+  @Column({ type: "integer", default: 0 })
+  orders!: number;
+
+  @Column({ type: "text", nullable: true })
+  time?: string;
+
   @CreateDateColumn({ type: "timestamp with time zone", name: "created_at" })
   createdAt!: Date;
 
   @UpdateDateColumn({ type: "timestamp with time zone", name: "updated_at" })
   updatedAt!: Date;
 
-  @Column({ type: "text", nullable: true, name: "table_name" })
-  tableName?: string;
+  @Column({ type: "text", name: "table_name" })
+  tableName!: string;
 }
