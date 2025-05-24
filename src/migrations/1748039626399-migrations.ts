@@ -212,6 +212,17 @@ export class Migrations1748039626399 implements MigrationInterface {
         )
     `);
 
+    await queryRunner.query(`
+  UPDATE "menus"
+  SET "category_id" = '5d61660b-6326-4fdc-ad33-7426a3348526'
+  WHERE "category_id" IS NULL
+`);
+    await queryRunner.query(`
+  UPDATE "menus"
+  SET "price" = 0
+  WHERE "price" IS NULL
+`);
+
     // Now that data is populated, enforce NOT NULL
     await queryRunner.query(
       `ALTER TABLE "menus" ALTER COLUMN "category_id" SET NOT NULL`,
