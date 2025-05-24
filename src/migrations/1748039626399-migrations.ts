@@ -7,7 +7,6 @@ export class Migrations1748039626399 implements MigrationInterface {
     // Add nullable columns first
     await queryRunner.query(`ALTER TABLE "menus" ADD "category_id" uuid`);
     await queryRunner.query(`ALTER TABLE "menus" ADD "price" double precision`);
-    
 
     await queryRunner.query(
       `ALTER TABLE "menus" ADD "tags" text array NOT NULL DEFAULT '{}'`,
@@ -233,7 +232,9 @@ export class Migrations1748039626399 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "menus" DROP COLUMN "calories"`);
     await queryRunner.query(`ALTER TABLE "menus" DROP COLUMN "allergens"`);
     await queryRunner.query(`ALTER TABLE "menus" DROP COLUMN "ingredients"`);
-    await queryRunner.query(`ALTER TABLE "menus" DROP COLUMN "preparationTime"`);
+    await queryRunner.query(
+      `ALTER TABLE "menus" DROP COLUMN "preparationTime"`,
+    );
     await queryRunner.query(`ALTER TABLE "menus" DROP COLUMN "available"`);
     await queryRunner.query(`ALTER TABLE "menus" DROP COLUMN "popular"`);
     await queryRunner.query(`ALTER TABLE "menus" DROP COLUMN "image"`);
