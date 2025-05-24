@@ -10,12 +10,10 @@ export class MenuCategoryService {
   }
 
   async getCategoriesByVenueId(venueId: string) {
-    // Find all categories where the menu's venue_id matches
-    return this.categoryRepository
-      .createQueryBuilder("category")
-      .innerJoin("menus", "menu", "category.menu_id = menu.id")
-      .where("menu.venue_id = :venueId", { venueId })
-      .orderBy("category.displayOrder", "ASC")
-      .getMany();
+    // Fetch all categories for the given venueId directly
+    return this.categoryRepository.find({
+      where: { venueId },
+      order: { displayOrder: "ASC" },
+    });
   }
 }

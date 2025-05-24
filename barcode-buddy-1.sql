@@ -174,7 +174,8 @@ CREATE TABLE public.menu_categories (
     description text,
     display_order integer NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    venue_id uuid NOT NULL
 );
 
 
@@ -720,16 +721,16 @@ COPY public.inventory (id, name, description, quantity, threshold_value, unit_pr
 -- Data for Name: menu_categories; Type: TABLE DATA; Schema: public; Owner: -
 --
 
-COPY public.menu_categories (id, menu_id, name, description, display_order, created_at, updated_at) FROM stdin;
-5d61660b-6326-4fdc-ad33-7426a3348526	d760209e-17cd-441a-a095-860417321ccd	Snacks	Quick bites to keep you in the game	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-cae08550-1255-4a19-bdb3-b1a691b4ce0b	d760209e-17cd-441a-a095-860417321ccd	Drinks	Refreshing beverages	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-71ab0530-6f24-4d77-b324-0322ca07a0fc	22b752a6-f41f-45bd-a724-58760db0dfab	Signature Cocktails	Exclusive drinks for VIPs	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-c1692d82-779f-4859-bfae-dc67320bba30	22b752a6-f41f-45bd-a724-58760db0dfab	Premium Spirits	Top-shelf selections	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-607fe1cb-be13-43ac-98e9-15b610c47016	32c50d09-b552-44d8-a631-2483752aee12	Appetizers	Start your meal with flair	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-eed00b32-2e2e-4f4b-8e89-a0a8706968fc	32c50d09-b552-44d8-a631-2483752aee12	Main Courses	Satisfying entrees	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-165617b9-678c-4f12-91c9-461ab79d3e34	32c50d09-b552-44d8-a631-2483752aee12	Desserts	Sweet finishes	3	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-38cbcbdd-0282-485d-8d14-82a4f983aa10	54aa4b2e-c7b1-495a-a3fe-ea0b92ea3c83	Classic Cocktails	Timeless favorites	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
-155157d7-b8ce-4ebf-8b1c-2e7e2852e67f	54aa4b2e-c7b1-495a-a3fe-ea0b92ea3c83	House Specials	Unique creations	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00
+COPY public.menu_categories (id, menu_id, name, description, display_order, created_at, updated_at, venue_id) FROM stdin;
+5d61660b-6326-4fdc-ad33-7426a3348526	d760209e-17cd-441a-a095-860417321ccd	Snacks	Quick bites to keep you in the game	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00	2f591481-0742-4f7d-93fa-8cafac27a57c
+cae08550-1255-4a19-bdb3-b1a691b4ce0b	d760209e-17cd-441a-a095-860417321ccd	Drinks	Refreshing beverages	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00	2f591481-0742-4f7d-93fa-8cafac27a57c
+71ab0530-6f24-4d77-b324-0322ca07a0fc	22b752a6-f41f-45bd-a724-58760db0dfab	Signature Cocktails	Exclusive drinks for VIPs	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00	2f591481-0742-4f7d-93fa-8cafac27a57c
+c1692d82-779f-4859-bfae-dc67320bba30	22b752a6-f41f-45bd-a724-58760db0dfab	Premium Spirits	Top-shelf selections	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00	2f591481-0742-4f7d-93fa-8cafac27a57c
+607fe1cb-be13-43ac-98e9-15b610c47016	32c50d09-b552-44d8-a631-2483752aee12	Appetizers	Start your meal with flair	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00	2f591481-0742-4f7d-93fa-8cafac27a57c
+eed00b32-2e2e-4f4b-8e89-a0a8706968fc	32c50d09-b552-44d8-a631-2483752aee12	Main Courses	Satisfying entrees	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00	2f591481-0742-4f7d-93fa-8cafac27a57c
+165617b9-678c-4f12-91c9-461ab79d3e34	32c50d09-b552-44d8-a631-2483752aee12	Desserts	Sweet finishes	3	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00	2f591481-0742-4f7d-93fa-8cafac27a57c
+38cbcbdd-0282-485d-8d14-82a4f983aa10	54aa4b2e-c7b1-495a-a3fe-ea0b92ea3c83	Classic Cocktails	Timeless favorites	1	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00	2f591481-0742-4f7d-93fa-8cafac27a57c
+155157d7-b8ce-4ebf-8b1c-2e7e2852e67f	54aa4b2e-c7b1-495a-a3fe-ea0b92ea3c83	House Specials	Unique creations	2	2025-03-01 16:36:51.838048+00	2025-03-01 16:36:51.838048+00	2f591481-0742-4f7d-93fa-8cafac27a57c
 \.
 
 
@@ -772,6 +773,7 @@ ab484514-8e43-48bf-aff4-7e893822680a	012eeaab-5160-4e61-93af-41fdb59250f2	Garlic
 COPY public.migrations (id, "timestamp", name) FROM stdin;
 1	1748035406085	RenameMenuSectionsToMenuCategories1748035406085
 2	1748039626399	Migrations1748039626399
+3	1748098937186	Migrations1748098937186
 \.
 
 
@@ -992,7 +994,7 @@ COPY public.venues (id, name, address, city, state, postal_code, country, phone_
 -- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.migrations_id_seq', 2, true);
+SELECT pg_catalog.setval('public.migrations_id_seq', 3, true);
 
 
 --

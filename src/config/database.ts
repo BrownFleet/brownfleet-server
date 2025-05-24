@@ -10,7 +10,7 @@ export const AppDataSource = new DataSource({
   username: DB_USERNAME,
   password: DB_PASSWORD,
   database: DB_NAME,
-  synchronize: isProd ? false : true, // Set to false in production
+  synchronize: false, // Set to false in production
   logging: true,
   entities: isProd
     ? ["dist/barcode-buddy/models/**/*.js"]
