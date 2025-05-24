@@ -771,6 +771,7 @@ ab484514-8e43-48bf-aff4-7e893822680a	012eeaab-5160-4e61-93af-41fdb59250f2	Garlic
 
 COPY public.migrations (id, "timestamp", name) FROM stdin;
 1	1748035406085	RenameMenuSectionsToMenuCategories1748035406085
+2	1748039626399	Migrations1748039626399
 \.
 
 
@@ -991,7 +992,7 @@ COPY public.venues (id, name, address, city, state, postal_code, country, phone_
 -- Name: migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.migrations_id_seq', 1, true);
+SELECT pg_catalog.setval('public.migrations_id_seq', 2, true);
 
 
 --

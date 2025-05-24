@@ -14,6 +14,9 @@ export class MenuSection {
   @Column({ type: "uuid", name: "menu_id" })
   menuId!: string;
 
+  @Column({ type: "uuid", name: "venue_id" })
+  venueId!: string;
+
   @Column({ type: "text" })
   name!: string;
 
