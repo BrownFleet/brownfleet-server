@@ -15,7 +15,10 @@ export class Team {
   userId!: string;
 
   @Column({ type: "text", name: "team_name" })
-  teamName!: string;
+  teamName?: string;
+
+  @Column({ type: "text", name: "name" })
+  name!: string;
 
   @Column({ type: "text", nullable: true })
   email?: string;
@@ -61,11 +64,11 @@ export class Team {
   venueId!: string;
 
   @Column({ type: "text", nullable: true })
-  status?: string;
-
-  @Column({ type: "text", nullable: true })
   image?: string;
 
   @Column({ type: "text", nullable: true })
   lastActive?: string;
+
+  @Column({ type: "boolean", name: "is_available", default: true })
+  isAvailable!: boolean;
 }
