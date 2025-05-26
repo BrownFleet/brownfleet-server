@@ -50,22 +50,20 @@ services:
       - DB_NAME=${DB_NAME}
       - BASE_URL=${BASE_URL}
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+      - NODE_OPTIONS=--max-old-space-size=512
     networks:
       - brownfleet-network
     depends_on:
       postgres:
         condition: service_healthy
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 768M
     logging:
       driver: "json-file"
       options:
         max-size: "5m"
         max-file: "2"
     restart: unless-stopped
+    mem_limit: 1g
+    memswap_limit: 2g
 
 volumes:
   postgres_data:
