@@ -58,8 +58,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.3"
-          memory: 400M
+          cpus: "0.5"
+          memory: 600M
     logging:
       driver: "json-file"
       options:
