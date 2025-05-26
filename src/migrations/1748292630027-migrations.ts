@@ -5,7 +5,7 @@ export class Migrations1748292630027 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE "teams" ADD "is_available" boolean NOT NULL DEFAULT true`
+      `ALTER TABLE "teams" ADD "is_available" boolean NOT NULL DEFAULT true`,
     );
   }
 
