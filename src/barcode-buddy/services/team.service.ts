@@ -13,7 +13,7 @@ export class TeamService {
     venueId: string,
     searchString?: string,
     roleId?: number,
-    status?: string,
+    isAvailable?: boolean,
   ): Promise<Team[]> {
     const where: any = { venueId };
 
@@ -23,8 +23,8 @@ export class TeamService {
     if (roleId) {
       where.roleId = roleId;
     }
-    if (status) {
-      where.status = status;
+    if (isAvailable) {
+      where.isAvailable = isAvailable;
     }
 
     return this.teamRepository.find({

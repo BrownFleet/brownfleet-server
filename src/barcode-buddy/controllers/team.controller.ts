@@ -12,7 +12,7 @@ export class TeamController {
     const venueId = req.query.venueId as string;
     const searchString = req.query.searchString as string | undefined;
     const roleId = req.query.roleId ? Number(req.query.roleId) : undefined;
-    const status = req.query.status as string | undefined;
+    const isAvailable = req.query.isAvailable as boolean | undefined;
 
     if (!venueId) {
       res.status(400).json({ data: null, error: "venueId is required" });
@@ -24,7 +24,7 @@ export class TeamController {
         venueId,
         searchString,
         roleId,
-        status,
+        isAvailable,
       );
       res.status(200).json({ data: teams, error: null });
     } catch (error) {
