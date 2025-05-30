@@ -51,6 +51,8 @@ services:
       - BASE_URL=${BASE_URL}
       - MISTRAL_API_KEY=${MISTRAL_API_KEY}
       - NODE_OPTIONS=--max-old-space-size=512
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
     networks:
       - brownfleet-network
     depends_on:
