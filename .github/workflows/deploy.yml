@@ -58,6 +58,8 @@ jobs:
           PGADMIN_DEFAULT_EMAIL=${{ secrets.PGADMIN_DEFAULT_EMAIL }}
           PGADMIN_DEFAULT_PASSWORD=${{ secrets.PGADMIN_DEFAULT_PASSWORD }}
           PGADMIN_PORT=${{ secrets.PGADMIN_PORT }}
+          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
           EOF
 
           scp -i ~/.ssh/github-client-to-vm/id_ed25519 \
