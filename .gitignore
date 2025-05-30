@@ -24,4 +24,6 @@ Thumbs.db
 # IDEs & editors
 .v
 
-echo "backup.dump" >> .gitignore
+# DB backups and SQL dumps
+backup.dump
+barcode-buddy-1.sql
