@@ -14,9 +14,9 @@ export class InventoryService {
     searchString?: string,
     category?: string,
     supplier?: string,
-    status?: string
+    status?: string,
   ): Promise<Inventory[]> {
-    const where: any = { venueId};
+    const where: any = { venueId };
 
     if (searchString) {
       where.name = ILike(`%${searchString}%`);

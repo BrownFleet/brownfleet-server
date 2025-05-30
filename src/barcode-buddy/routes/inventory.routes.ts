@@ -44,6 +44,9 @@ const inventoryController = new InventoryController();
  *       200:
  *         description: List of inventory items
  */
-router.get("/inventories", inventoryController.getInventoryList.bind(inventoryController));
+router.get(
+  "/inventories",
+  inventoryController.getInventoryList.bind(inventoryController),
+);
 
 export default router;

@@ -26,7 +26,7 @@ export class InventoryController {
         searchString,
         category,
         supplier,
-        status
+        status,
       );
       res.status(200).json({ data: inventories, error: null });
     } catch (error) {
