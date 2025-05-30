@@ -7,17 +7,17 @@ export class Migrations1748632049025 implements MigrationInterface {
     // Schema changes
     await queryRunner.query(`ALTER TABLE "inventory" DROP COLUMN "last_used"`);
     await queryRunner.query(
-      `ALTER TABLE "inventory" ADD "venue_id" uuid NOT NULL`
+      `ALTER TABLE "inventory" ADD "venue_id" uuid NOT NULL`,
     );
     await queryRunner.query(
-      `ALTER TABLE "inventory" ADD "category" text NOT NULL DEFAULT 'Uncategorized'`
+      `ALTER TABLE "inventory" ADD "category" text NOT NULL DEFAULT 'Uncategorized'`,
     );
     await queryRunner.query(
-      `ALTER TABLE "inventory" ADD "unit" text NOT NULL DEFAULT 'unit'`
+      `ALTER TABLE "inventory" ADD "unit" text NOT NULL DEFAULT 'unit'`,
     );
     await queryRunner.query(`ALTER TABLE "inventory" ADD "supplier" text`);
     await queryRunner.query(
-      `ALTER TABLE "inventory" ADD "status" text NOT NULL DEFAULT 'good'`
+      `ALTER TABLE "inventory" ADD "status" text NOT NULL DEFAULT 'good'`,
     );
 
     // Insert all rows you provided
@@ -68,7 +68,7 @@ export class Migrations1748632049025 implements MigrationInterface {
     await queryRunner.query(`ALTER TABLE "inventory" DROP COLUMN "category"`);
     await queryRunner.query(`ALTER TABLE "inventory" DROP COLUMN "venue_id"`);
     await queryRunner.query(
-      `ALTER TABLE "inventory" ADD "last_used" TIMESTAMP WITH TIME ZONE`
+      `ALTER TABLE "inventory" ADD "last_used" TIMESTAMP WITH TIME ZONE`,
     );
   }
 }
