@@ -7,7 +7,7 @@ import menuRoutes from "./barcode-buddy/routes/menu.routes";
 import menuCategoriesRoutes from "./barcode-buddy/routes/menu-categories.routes";
 import venueTableRoutes from "./barcode-buddy/routes/venue-table.routes";
 import teamRoutes from "./barcode-buddy/routes/team.routes";
-import inventoryRoutes from "./barcode-buddy/routes/inventory.routes"; // Assuming inventoryRoutes is defined and imported
+import inventoryRoutes from "./barcode-buddy/routes/inventory.routes";
 
 import { setupSwagger } from "./config/swagger";
 import authRoutes from "./barcode-buddy/routes/auth.routes";
