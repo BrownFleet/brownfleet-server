@@ -190,8 +190,8 @@ router.post(
  *                 type: string
  *                 description: Name of the menu item
  *               categoryId:
-*                 type: string
-*                 description: Category ID (UUID)
+ *                 type: string
+ *                 description: Category ID (UUID)
  *               tags:
  *                 type: array
  *                 items:

@@ -20,7 +20,7 @@ export class MenuService {
     venueId: string,
     searchString?: string,
     categoryId?: string,
-    isItemAvailable?: boolean
+    isItemAvailable?: boolean,
   ): Promise<any[]> {
     const where: any = { venue: { id: venueId } };
 
@@ -90,7 +90,7 @@ export class MenuService {
 
   async createMenu(
     menuData: MenuDto,
-    imageFile?: Express.Multer.File
+    imageFile?: Express.Multer.File,
   ): Promise<Menu> {
     menuData.tags = parseArrayField(menuData.tags);
     menuData.ingredients = parseArrayField(menuData.ingredients);
@@ -113,7 +113,7 @@ export class MenuService {
   async updateMenu(
     menuId: string,
     menuData: MenuDto,
-    imageFile?: Express.Multer.File
+    imageFile?: Express.Multer.File,
   ): Promise<Menu | null> {
     const updateData: Partial<Menu> = {
       name: menuData.name,

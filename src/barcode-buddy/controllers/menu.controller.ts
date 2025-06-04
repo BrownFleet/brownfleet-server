@@ -29,7 +29,7 @@ export class MenuController {
         venueId,
         searchString,
         categoryId,
-        isItemAvailable
+        isItemAvailable,
       );
       res.status(200).json({ data: menus, error: null });
     } catch (error) {
@@ -56,7 +56,7 @@ export class MenuController {
       const menu = await this.menuService.updateMenu(
         menuId,
         menuData,
-        imageFile
+        imageFile,
       );
       res.status(200).json({ data: menu, error: null });
     } catch (error) {

@@ -7,7 +7,7 @@ export interface MenuDto {
   variants?: string[];
   description?: string;
   currency?: string;
-  image?: string; 
+  image?: string;
   popular?: boolean;
   isAvailable?: boolean;
   preparationTime?: string;
