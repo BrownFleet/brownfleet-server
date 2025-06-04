@@ -4,21 +4,27 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  JoinColumn,
+  ManyToOne,
 } from "typeorm";
+import { MenuSection } from "./menu-categories.model";
+import { Venue } from "./venue.model";
 
 @Entity("menus")
 export class Menu {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: "uuid", name: "venue_id" })
-  venueId!: string;
+  @ManyToOne(() => Venue)
+  @JoinColumn({ name: "venue_id" })
+  venue!: Venue;
 
   @Column({ type: "text" })
   name!: string;
 
-  @Column({ type: "uuid", name: "category_id" })
-  categoryId!: string;
+  @ManyToOne(() => MenuSection)
+  @JoinColumn({ name: "category_id" })
+  category!: MenuSection;
 
   @Column({ type: "text", array: true, default: "{}" })
   tags!: string[];
@@ -73,7 +79,7 @@ export class Menu {
   reviewsCount!: number;
 
   @Column({ type: "jsonb", nullable: true })
-  comboDetails!: any; // or define a ComboDetails type/interface
+  comboDetails!: any;
 
   @Column({ type: "text", nullable: true })
   internalNotes!: string;
