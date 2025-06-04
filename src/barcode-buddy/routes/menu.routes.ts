@@ -47,7 +47,7 @@ const menuController = new MenuController();
 router.get(
   "/menus",
   // authenticateToken, TODO: add it once login logout UI added on F.E
-  menuController.getMenus.bind(menuController)
+  menuController.getMenus.bind(menuController),
 );
 
 /**
@@ -162,7 +162,7 @@ router.get(
 router.post(
   "/menus",
   upload.single("image"),
-  menuController.createMenu.bind(menuController)
+  menuController.createMenu.bind(menuController),
 );
 
 /**
@@ -280,7 +280,7 @@ router.post(
 router.put(
   "/menus/:id",
   upload.single("image"),
-  menuController.updateMenu.bind(menuController)
+  menuController.updateMenu.bind(menuController),
 );
 
 /**
@@ -327,7 +327,7 @@ router.delete("/menus/:id", menuController.deleteMenu.bind(menuController));
  */
 router.patch(
   "/menus/:id/availability",
-  menuController.markMenuItemUnavailable.bind(menuController)
+  menuController.markMenuItemUnavailable.bind(menuController),
 );
 
 export default router;

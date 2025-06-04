@@ -15,7 +15,7 @@ export class MenuService {
     venueId: string,
     searchString?: string,
     categoryId?: string,
-    isItemAvailable?: boolean
+    isItemAvailable?: boolean,
   ): Promise<Menu[]> {
     const where: any = { venueId };
 
@@ -54,7 +54,7 @@ export class MenuService {
 
   async createMenu(
     menuData: Partial<Menu>,
-    imageFile?: Express.Multer.File
+    imageFile?: Express.Multer.File,
   ): Promise<Menu> {
     menuData.tags = parseArrayField(menuData.tags);
     menuData.ingredients = parseArrayField(menuData.ingredients);
@@ -75,7 +75,7 @@ export class MenuService {
   async updateMenu(
     menuId: string,
     menuData: Partial<Menu>,
-    imageFile?: Express.Multer.File
+    imageFile?: Express.Multer.File,
   ): Promise<Menu | null> {
     menuData.tags = parseArrayField(menuData.tags);
     menuData.ingredients = parseArrayField(menuData.ingredients);
@@ -91,7 +91,7 @@ export class MenuService {
     await this.menuRepository.update(menuId, menuData);
     return this.menuRepository.findOneBy({ id: menuId });
   }
-  
+
   async deleteMenu(menuId: string): Promise<void> {
     await this.menuRepository.delete(menuId);
   }
