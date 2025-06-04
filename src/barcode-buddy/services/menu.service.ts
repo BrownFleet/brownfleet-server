@@ -15,7 +15,7 @@ export class MenuService {
     venueId: string,
     searchString?: string,
     categoryId?: string,
-    isItemAvailable?: boolean,
+    isItemAvailable?: boolean
   ): Promise<Menu[]> {
     const where: any = { venueId };
 
@@ -54,7 +54,7 @@ export class MenuService {
 
   async createMenu(
     menuData: Partial<Menu>,
-    imageFile?: Express.Multer.File,
+    imageFile?: Express.Multer.File
   ): Promise<Menu> {
     menuData.tags = parseArrayField(menuData.tags);
     menuData.ingredients = parseArrayField(menuData.ingredients);
@@ -70,5 +70,29 @@ export class MenuService {
     }
     const menu = this.menuRepository.create({ ...menuData, image: imageUrl });
     return this.menuRepository.save(menu);
+  }
+
+  async updateMenu(
+    menuId: string,
+    menuData: Partial<Menu>,
+    imageFile?: Express.Multer.File
+  ): Promise<Menu | null> {
+    menuData.tags = parseArrayField(menuData.tags);
+    menuData.ingredients = parseArrayField(menuData.ingredients);
+    menuData.allergens = parseArrayField(menuData.allergens);
+    menuData.variants = parseArrayField(menuData.variants);
+    menuData.comboDetails = parseArrayField(menuData.comboDetails);
+    menuData.dietary = parseObjectField(menuData.dietary);
+
+    if (imageFile) {
+      menuData.image = await this.uploadImageToSupabase(imageFile);
+    }
+
+    await this.menuRepository.update(menuId, menuData);
+    return this.menuRepository.findOneBy({ id: menuId });
+  }
+  
+  async deleteMenu(menuId: string): Promise<void> {
+    await this.menuRepository.delete(menuId);
   }
 }

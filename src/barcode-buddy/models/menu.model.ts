@@ -35,16 +35,14 @@ export class Menu {
   @Column({ type: "text" })
   currency!: string;
 
-  @Column({ type: "boolean", default: true, name: "is_active" })
-  isActive!: boolean;
   @Column({ type: "text", nullable: true })
   image!: string;
 
   @Column({ type: "boolean", default: false })
   popular!: boolean;
 
-  @Column({ type: "boolean", default: true })
-  available!: boolean;
+  @Column({ type: "boolean", default: true, name: "is_available" })
+  isAvailable!: boolean;
 
   @Column({ type: "text", nullable: true })
   preparationTime!: string;
