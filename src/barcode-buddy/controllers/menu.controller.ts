@@ -72,16 +72,4 @@ export class MenuController {
       res.status(500).json({ data: null, error: (error as Error).message });
     }
   }
-
-  async markMenuItemUnavailable(req: Request, res: Response): Promise<void> {
-    try {
-      const menuItemId = req.params.id;
-      const menuItem = await this.menuService.updateMenu(menuItemId, {
-        isAvailable: false,
-      });
-      res.status(200).json({ data: menuItem, error: null });
-    } catch (error) {
-      res.status(500).json({ data: null, error: (error as Error).message });
-    }
-  }
 }
