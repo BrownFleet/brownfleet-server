@@ -43,7 +43,7 @@ export class MenuService {
       id: menu.id,
       venueId: menu.venue?.id,
       name: menu.name,
-      categoryy: menu.category
+      category: menu.category
         ? { id: menu.category.id, name: menu.category.name }
         : null,
       tags: menu.tags,
