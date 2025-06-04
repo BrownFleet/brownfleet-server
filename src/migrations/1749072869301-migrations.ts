@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class FixPrimaryKeys1749072869303 implements MigrationInterface {
-  name = "FixPrimaryKeys1749072869303";
+export class FixPrimaryKeys1749072869301 implements MigrationInterface {
+  name = "FixPrimaryKeys1749072869301";
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Ensure venues.id is not nullable and has a primary key
