@@ -189,6 +189,9 @@ router.post(
  *               name:
  *                 type: string
  *                 description: Name of the menu item
+ *               categoryId:
+*                 type: string
+*                 description: Category ID (UUID)
  *               tags:
  *                 type: array
  *                 items:
@@ -208,9 +211,6 @@ router.post(
  *               currency:
  *                 type: string
  *                 description: Currency code (e.g., USD)
- *               isActive:
- *                 type: boolean
- *                 description: Is the menu item active
  *               image:
  *                 type: string
  *                 format: binary
@@ -218,7 +218,7 @@ router.post(
  *               popular:
  *                 type: boolean
  *                 description: Is the item popular
- *               available:
+ *               isAvailable:
  *                 type: boolean
  *                 description: Is the item available
  *               preparationTime:

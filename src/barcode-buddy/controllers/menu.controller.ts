@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { MenuService } from "../services/menu.service";
+import { MenuDto } from "../dto/menu.dto";
 
 export class MenuController {
   private menuService: MenuService;
@@ -28,7 +29,7 @@ export class MenuController {
         venueId,
         searchString,
         categoryId,
-        isItemAvailable,
+        isItemAvailable
       );
       res.status(200).json({ data: menus, error: null });
     } catch (error) {
@@ -38,7 +39,7 @@ export class MenuController {
 
   async createMenu(req: Request, res: Response): Promise<void> {
     try {
-      const menuData = req.body;
+      const menuData: MenuDto = req.body;
       const imageFile = req.file;
       const menu = await this.menuService.createMenu(menuData, imageFile);
       res.status(201).json({ data: menu, error: null });
@@ -50,12 +51,12 @@ export class MenuController {
   async updateMenu(req: Request, res: Response): Promise<void> {
     try {
       const menuId = req.params.id;
-      const menuData = req.body;
+      const menuData: MenuDto = req.body;
       const imageFile = req.file;
       const menu = await this.menuService.updateMenu(
         menuId,
         menuData,
-        imageFile,
+        imageFile
       );
       res.status(200).json({ data: menu, error: null });
     } catch (error) {

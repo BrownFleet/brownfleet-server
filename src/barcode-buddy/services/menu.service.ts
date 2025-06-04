@@ -7,6 +7,7 @@ import { assignRelationId } from "../common/utils/assignRelationId";
 import { RelationKeys } from "../common/enums/relationKeys";
 import { Venue } from "../models/venue.model";
 import { MenuSection } from "../models/menu-categories.model";
+import { MenuDto } from "../dto/menu.dto";
 
 export class MenuService {
   private menuRepository: Repository<Menu>;
@@ -19,7 +20,7 @@ export class MenuService {
     venueId: string,
     searchString?: string,
     categoryId?: string,
-    isItemAvailable?: boolean,
+    isItemAvailable?: boolean
   ): Promise<any[]> {
     const where: any = { venue: { id: venueId } };
 
@@ -88,8 +89,8 @@ export class MenuService {
   }
 
   async createMenu(
-    menuData: Partial<Menu>,
-    imageFile?: Express.Multer.File,
+    menuData: MenuDto,
+    imageFile?: Express.Multer.File
   ): Promise<Menu> {
     menuData.tags = parseArrayField(menuData.tags);
     menuData.ingredients = parseArrayField(menuData.ingredients);
@@ -111,25 +112,50 @@ export class MenuService {
 
   async updateMenu(
     menuId: string,
-    menuData: Partial<Menu>,
-    imageFile?: Express.Multer.File,
+    menuData: MenuDto,
+    imageFile?: Express.Multer.File
   ): Promise<Menu | null> {
-    menuData.tags = parseArrayField(menuData.tags);
-    menuData.ingredients = parseArrayField(menuData.ingredients);
-    menuData.allergens = parseArrayField(menuData.allergens);
-    menuData.variants = parseArrayField(menuData.variants);
-    menuData.comboDetails = parseArrayField(menuData.comboDetails);
-    menuData.dietary = parseObjectField(menuData.dietary);
+    const updateData: Partial<Menu> = {
+      name: menuData.name,
+      tags: parseArrayField(menuData.tags),
+      price: menuData.price,
+      variants: parseArrayField(menuData.variants),
+      description: menuData.description,
+      currency: menuData.currency,
+      image: menuData.image,
+      popular: menuData.popular,
+      isAvailable: menuData.isAvailable,
+      preparationTime: menuData.preparationTime,
+      ingredients: parseArrayField(menuData.ingredients),
+      allergens: parseArrayField(menuData.allergens),
+      calories: menuData.calories,
+      discount: menuData.discount,
+      dietary: parseObjectField(menuData.dietary),
+      rating: menuData.rating,
+      reviewsCount: menuData.reviewsCount,
+      comboDetails: parseArrayField(menuData.comboDetails),
+      internalNotes: menuData.internalNotes,
+      status: menuData.status,
+    };
 
-    assignRelationId(menuData, RelationKeys.Venue, Venue);
-    assignRelationId(menuData, RelationKeys.Category, MenuSection);
-
-    if (imageFile) {
-      menuData.image = await this.uploadImageToSupabase(imageFile);
+    // Handle relations
+    if (menuData.categoryId) {
+      updateData.category = { id: menuData.categoryId } as MenuSection;
+    }
+    if (menuData.venueId) {
+      updateData.venue = { id: menuData.venueId } as Venue;
     }
 
-    await this.menuRepository.update(menuId, menuData);
-    return this.menuRepository.findOneBy({ id: menuId });
+    // Handle image upload
+    if (imageFile) {
+      updateData.image = await this.uploadImageToSupabase(imageFile);
+    }
+
+    await this.menuRepository.update(menuId, updateData);
+    return this.menuRepository.findOne({
+      where: { id: menuId },
+      relations: ["category", "venue"],
+    });
   }
 
   async deleteMenu(menuId: string): Promise<void> {
