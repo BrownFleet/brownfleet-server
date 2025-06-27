@@ -13,7 +13,7 @@ export interface IMenuItem {
   discount_price?: number;
 }
 
-export interface IMenuSection {
+export interface IMenuCategories {
   id: string;
   name: string;
   description?: string;
@@ -27,5 +27,5 @@ export interface IMenu {
   description?: string;
   currency: string;
   is_active: boolean;
-  sections: IMenuSection[];
+  sections: IMenuCategories[];
 }

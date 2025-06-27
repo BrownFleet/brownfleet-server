@@ -7,7 +7,7 @@ import {
   JoinColumn,
   ManyToOne,
 } from "typeorm";
-import { MenuSection } from "./menu-categories.model";
+import { MenuCategories } from "./menu-categories.model";
 import { Venue } from "./venue.model";
 
 @Entity("menus")
@@ -22,9 +22,9 @@ export class Menu {
   @Column({ type: "text" })
   name!: string;
 
-  @ManyToOne(() => MenuSection)
+  @ManyToOne(() => MenuCategories)
   @JoinColumn({ name: "category_id" })
-  category!: MenuSection;
+  category!: MenuCategories;
 
   @Column({ type: "text", array: true, default: "{}" })
   tags!: string[];

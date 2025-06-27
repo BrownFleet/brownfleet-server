@@ -4,18 +4,24 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from "typeorm";
+import { Venue } from "./venue.model";
+import { Menu } from "./menu.model";
 
 @Entity("menu_categories")
-export class MenuSection {
+export class MenuCategories {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @Column({ type: "uuid", name: "menu_id" })
-  menuId!: string;
+  @ManyToOne(() => Menu, { nullable: false })
+  @JoinColumn({ name: "menu_id" })
+  menu!: Menu;
 
-  @Column({ type: "uuid", name: "venue_id" })
-  venueId!: string;
+  @ManyToOne(() => Venue, { nullable: false })
+  @JoinColumn({ name: "venue_id" })
+  venue!: Venue;
 
   @Column({ type: "text" })
   name!: string;
@@ -24,7 +30,7 @@ export class MenuSection {
   description?: string;
 
   @Column({ type: "integer", name: "display_order" })
-  displayOrder!: number;
+  displayOrder?: number;
 
   @CreateDateColumn({ type: "timestamp with time zone", name: "created_at" })
   createdAt!: Date;

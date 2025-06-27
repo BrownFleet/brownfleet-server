@@ -6,7 +6,7 @@ import { parseArrayField, parseObjectField } from "../common/utils/parsing";
 import { assignRelationId } from "../common/utils/assignRelationId";
 import { RelationKeys } from "../common/enums/relationKeys";
 import { Venue } from "../models/venue.model";
-import { MenuSection } from "../models/menu-categories.model";
+import { MenuCategories } from "../models/menu-categories.model";
 import { MenuDto } from "../dto/menu.dto";
 
 export class MenuService {
@@ -100,7 +100,7 @@ export class MenuService {
     menuData.dietary = parseObjectField(menuData.dietary);
 
     assignRelationId(menuData, RelationKeys.Venue, Venue);
-    assignRelationId(menuData, RelationKeys.Category, MenuSection);
+    assignRelationId(menuData, RelationKeys.Category, MenuCategories);
 
     let imageUrl = menuData.image;
     if (imageFile) {
@@ -140,7 +140,7 @@ export class MenuService {
 
     // Handle relations
     if (menuData.categoryId) {
-      updateData.category = { id: menuData.categoryId } as MenuSection;
+      updateData.category = { id: menuData.categoryId } as MenuCategories;
     }
     if (menuData.venueId) {
       updateData.venue = { id: menuData.venueId } as Venue;

@@ -1,19 +1,51 @@
 import { Repository } from "typeorm";
 import { AppDataSource } from "../../config/database";
-import { MenuSection } from "../models/menu-categories.model";
+import { MenuCategories } from "../models/menu-categories.model";
+import { Venue } from "../models/venue.model";
+import { Menu } from "../models/menu.model";
 
-export class MenuCategoryService {
-  private categoryRepository: Repository<MenuSection>;
+export class MenuCategoriesService {
+  private categoryRepository: Repository<MenuCategories>;
 
   constructor() {
-    this.categoryRepository = AppDataSource.getRepository(MenuSection);
+    this.categoryRepository = AppDataSource.getRepository(MenuCategories);
   }
 
   async getCategoriesByVenueId(venueId: string) {
-    // Fetch all categories for the given venueId directly
     return this.categoryRepository.find({
-      where: { venueId },
-      order: { displayOrder: "ASC" },
+      where: { venue: { id: venueId } },
+      order: { name: "ASC" },
     });
+  }
+
+  async createCategory(data: {
+    venueId: string;
+    menuId: string;
+    name: string;
+    description?: string;
+    displayOrder: number;
+  }) {
+    const venue = { id: data.venueId } as Venue;
+    const menu = { id: data.menuId } as Menu;
+    const category = this.categoryRepository.create({
+      name: data.name,
+      description: data.description,
+      venue,
+      menu,
+      displayOrder: data.displayOrder,
+    });
+    return this.categoryRepository.save(category);
+  }
+
+  async updateCategory(
+    categoryId: string,
+    data: { name?: string; description?: string }
+  ) {
+    await this.categoryRepository.update(categoryId, data);
+    return this.categoryRepository.findOne({ where: { id: categoryId } });
+  }
+
+  async deleteCategory(categoryId: string) {
+    await this.categoryRepository.delete(categoryId);
   }
 }
