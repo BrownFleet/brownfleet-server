@@ -39,7 +39,7 @@ export class MenuCategoriesService {
 
   async updateCategory(
     categoryId: string,
-    data: { name?: string; description?: string }
+    data: { name?: string; description?: string },
   ) {
     await this.categoryRepository.update(categoryId, data);
     return this.categoryRepository.findOne({ where: { id: categoryId } });

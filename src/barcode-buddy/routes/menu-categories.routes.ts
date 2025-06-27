@@ -22,7 +22,7 @@ const controller = new MenuCategoriesController();
  */
 router.get(
   "/venues/:venueId/menu-categories",
-  controller.getCategories.bind(controller)
+  controller.getCategories.bind(controller),
 );
 
 /**
@@ -62,7 +62,7 @@ router.get(
  */
 router.post(
   "/venues/:venueId/menu-categories",
-  controller.createCategory.bind(controller)
+  controller.createCategory.bind(controller),
 );
 
 /**
@@ -96,7 +96,7 @@ router.post(
  */
 router.put(
   "/menu-categories/:categoryId",
-  controller.updateCategory.bind(controller)
+  controller.updateCategory.bind(controller),
 );
 
 /**
@@ -117,7 +117,7 @@ router.put(
  */
 router.delete(
   "/menu-categories/:categoryId",
-  controller.deleteCategory.bind(controller)
+  controller.deleteCategory.bind(controller),
 );
 
 export default router;
